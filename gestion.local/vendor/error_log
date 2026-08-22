@@ -1,0 +1,6 @@
+[19-Aug-2026 16:34:32 UTC] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'is_2fa_enabled' in 'field list' in /home/ii3jbzwv/gestion.hugueslenoir.fr/includes/fonctions.php:59
+Stack trace:
+#0 /home/ii3jbzwv/gestion.hugueslenoir.fr/includes/fonctions.php(59): PDOStatement->execute()
+#1 /home/ii3jbzwv/gestion.hugueslenoir.fr/login.php(32): verify_login()
+#2 {main}
+  thrown in /home/ii3jbzwv/gestion.hugueslenoir.fr/includes/fonctions.php on line 59

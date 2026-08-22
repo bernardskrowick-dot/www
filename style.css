@@ -1,0 +1,294 @@
+/* ===================================================
+   THÈME : MBS_DARK (Creative & Professional)
+   Concept : Profondeur, Verre dépoli et Accents Néon
+   =================================================== */
+
+:root {
+    --bg-dark: #0f172a;
+    --bg-card: rgba(30, 41, 59, 0.7); /* Ajusté pour plus de profondeur */
+    --accent-blue: #38bdf8;
+    --accent-purple: #818cf8;
+    --text-main: #f1f5f9;
+    --text-muted: #cbd5e1;
+    --glass-border: rgba(255, 255, 255, 0.1);
+}
+
+/* 1. Structure Globale et Espacement */
+body {
+    background: radial-gradient(circle at top right, #1e293b, #0f172a) no-repeat fixed !important;
+    color: var(--text-main) !important;
+    font-family: 'Inter', 'Segoe UI', system-ui, sans-serif !important;
+    line-height: 1.6;
+    font-size: 16px;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh; /* Pour le footer en bas */
+    margin: 0;
+}
+
+/* Conteneur principal pour décoller du haut */
+.main-content {
+    flex: 1 0 auto;
+    padding-top: 60px;    /* Espace haut pour la respiration */
+    padding-bottom: 60px;
+}
+
+/* Sécurité de couleur pour les textes sans classes */
+p, span, div, label, strong, li {
+    color: inherit;
+}
+
+/* 2. Titres (Tous centrés) */
+.main-title, h1 {
+    font-size: 2.5rem !important; 
+    font-weight: 800 !important;
+    color: #ffffff !important;
+    margin-bottom: 2.5rem !important;
+    display: flex !important;
+    align-items: center;
+    justify-content: center; /* Centrage horizontal flex */
+    text-align: center;
+    gap: 15px;
+    background: linear-gradient(to right, var(--accent-blue), var(--accent-purple));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    width: 100%;
+}
+
+h2 {
+    font-size: 1.8rem !important;
+    font-weight: 700 !important;
+    color: #ffffff !important;
+    text-align: center;      /* Centrage horizontal */
+    width: 100%;
+    margin-bottom: 2rem !important;
+    background: none !important;
+    -webkit-background-clip: initial !important;
+    display: block !important;
+}
+
+h1 span.emoji {
+    -webkit-text-fill-color: initial; 
+    display: inline-block;
+}
+
+/* 3. Containers et Cards */
+.container, .card, .bg-glass {
+    background: var(--bg-card) !important;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border) !important;
+    border-radius: 16px !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3) !important;
+    padding-top: 30px !important; /* Respiration interne haute */
+}
+
+/* Correctif visibilité carte et profil */
+.card, .card *, .bg-glass, .bg-glass * {
+    color: #ffffff !important;
+}
+
+.card strong {
+    color: var(--accent-blue) !important;
+}
+
+/* 4. Formulaires */
+label, .form-label {
+    color: var(--accent-blue) !important;
+    font-size: 0.9rem !important;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 8px;
+    font-weight: 700 !important;
+}
+
+.form-control, .form-select {
+    background: rgba(15, 23, 42, 0.8) !important;
+    border: 1px solid var(--glass-border) !important;
+    color: #ffffff !important;
+    border-radius: 8px !important;
+    padding: 12px !important;
+}
+
+.form-select option {
+    background-color: var(--bg-dark) !important;
+    color: #ffffff !important;
+}
+
+::placeholder { color: rgba(255, 255, 255, 0.5) !important; }
+
+/* 5. Boutons */
+.btn-primary {
+    background: linear-gradient(135deg, var(--accent-blue), #0284c7) !important;
+    border: none !important;
+    font-weight: 600 !important;
+    padding: 12px 30px !important;
+    box-shadow: 0 4px 15px rgba(56, 189, 248, 0.3) !important;
+    color: #ffffff !important;
+}
+
+/* 6. Tableaux (Dossier Achats) */
+.table, .table-dark-custom {
+    color: #ffffff !important;
+    border-collapse: separate !important;
+    border-spacing: 0 12px !important;
+    width: 100% !important;
+    background-color: transparent !important; 
+    border: none !important;
+}
+
+.table thead, .table tbody, .table tr, .table th, .table td {
+    background-color: transparent !important;
+    border-color: transparent !important;
+}
+
+.table thead th {
+    background-color: rgba(30, 41, 59, 0.95) !important; 
+    color: var(--accent-blue) !important;
+    font-weight: 800 !important;
+    text-transform: uppercase;
+    padding: 15px !important;
+    border-bottom: 2px solid var(--accent-blue) !important;
+    text-align: center;
+}
+
+.table td {
+    background-color: rgba(255, 255, 255, 0.08) !important; 
+    color: #ffffff !important;
+    padding: 18px 15px !important;
+}
+
+.table td:first-child { border-radius: 12px 0 0 12px !important; }
+.table td:last-child { border-radius: 0 12px 12px 0 !important; }
+
+/* 7. Badges et Progression */
+.badge-neon {
+    font-size: 0.75rem !important;
+    font-weight: 800;
+    padding: 6px 12px;
+    border-radius: 50px;
+    border: 1px solid currentColor;
+}
+.badge-neon-blue { color: var(--accent-blue); box-shadow: 0 0 12px rgba(56, 189, 248, 0.4); }
+.badge-neon-success { color: #10b981; box-shadow: 0 0 12px rgba(16, 185, 129, 0.4); }
+
+.progress {
+    background-color: rgba(0,0,0,0.3) !important;
+    border-radius: 10px !important;
+    height: 12px !important;
+}
+
+/* 8. Corrections Globales de Visibilité */
+.text-muted, .small, .text-secondary {
+    color: #cbd5e1 !important;
+    font-size: 0.9rem !important;
+}
+
+.fw-bold, .text-white { color: #ffffff !important; }
+
+.page-link {
+    background: rgba(255, 255, 255, 0.05) !important;
+    color: #ffffff !important;
+    border: 1px solid var(--glass-border) !important;
+}
+
+.page-item.active .page-link {
+    background: var(--accent-blue) !important;
+    color: #0f172a !important;
+}
+
+/* 9. Footer */
+/* 9. Footer (Version corrigée avec respiration) */
+footer.footer {
+    flex-shrink: 0;
+    background: var(--bg-card) !important; 
+    backdrop-filter: blur(15px) !important;
+    border-radius: 30px 30px 0 0 !important; 
+    border: 1px solid var(--glass-border) !important;
+    
+    /* 🎯 LE SECRET : Marge auto pour le bas + 100px de sécurité */
+    margin-top: 100px !important; 
+    padding: 3rem 0 !important;
+    width: 100%;
+}
+
+.bg-glass-light { background: rgba(255, 255, 255, 0.03); }
+.border-left-danger { border-left: 5px solid #ef4444 !important; }
+
+/* ===================================================
+   AJOUTS SPÉCIFIQUES : DASHBOARD & VISUALISATION
+   =================================================== */
+
+/* 1. Cartes de Statistiques (KPI) plus compactes */
+.card-kpi {
+    padding: 1.5rem !important; /* Moins de padding que la règle .card globale */
+    text-align: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card-kpi:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px rgba(56, 189, 248, 0.2) !important;
+}
+
+/* 2. Jauge Circulaire Néon Custom */
+.progress-circle-custom {
+    position: relative;
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    /* Utilise ta variable accent-blue pour le contour */
+    background: conic-gradient(var(--accent-blue) calc(var(--percentage) * 1%), rgba(255,255,255,0.1) 0);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 15px rgba(56, 189, 248, 0.3);
+}
+
+/* Cercle intérieur pour l'effet "donut" */
+.progress-circle-custom::before {
+    content: "";
+    position: absolute;
+    width: 58px;
+    height: 58px;
+    background: #1e293b; /* Couleur de fond unie pour le centre */
+    border-radius: 50%;
+}
+
+.progress-circle-custom span {
+    position: relative;
+    z-index: 2;
+    font-size: 0.9rem;
+    font-weight: 800;
+    color: #fff;
+}
+
+/* 3. Tableaux avec lignes flottantes (Optimisation de ta règle existante) */
+.table-spacer {
+    border-collapse: separate !important;
+    border-spacing: 0 10px !important; /* L'espace entre les lignes */
+}
+
+.table-spacer tr {
+    transition: background 0.3s ease;
+}
+
+.table-spacer td {
+    border-top: 1px solid var(--glass-border) !important;
+    border-bottom: 1px solid var(--glass-border) !important;
+}
+
+/* 4. Boutons d'action rapides (Hover discret) */
+.btn-action-dash {
+    border-radius: 12px !important;
+    text-transform: uppercase;
+    font-size: 0.8rem !important;
+    letter-spacing: 1px;
+    transition: all 0.2s;
+}
+
+.btn-action-dash:hover {
+    filter: brightness(1.2);
+    letter-spacing: 1.5px;
+}

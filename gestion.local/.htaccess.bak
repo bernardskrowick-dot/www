@@ -1,0 +1,47 @@
+# ==============================================================================
+# FICHIER .htaccess - SÉCURITÉ & PROTECTION DU SITE
+# ==============================================================================
+
+# 1. Empêcher le listing des dossiers (Directory Listing)
+Options -Indexes
+
+# 2. Protection contre le vol de liens directs (Hotlinking) optionnel
+# (Bloque les sites tiers qui affichent vos images/assets)
+# RewriteEngine On
+# RewriteCond %{HTTP_REFERER} !^$
+# RewriteCond %{HTTP_REFERER} !^https://(www\.)monsite\.com [NC]
+# RewriteRule \.(jpg|jpeg|png|gif)$ - [F,L]
+
+# 3. Protection du dossier includes/ et de ses fichiers sensibles (.php, .sql, etc.)
+# Empêche un utilisateur ou un robot d'accéder directement à vos fichiers de requêtes SQL
+<IfModule mod_rewrite.txt>
+    RewriteEngine On
+    RewriteRule ^includes/ - [F,L]
+</IfModule>
+
+# 4. Blocage des User-Agents malveillants connus (Scanners, Copieurs de sites, Bots agressifs)
+<IfModule mod_setenvif.txt>
+    SetEnvIfNoCase User-Agent "Baiduspider" bad_bot
+    SetEnvIfNoCase User-Agent "AhrefsBot" bad_bot
+    SetEnvIfNoCase User-Agent "SemrushBot" bad_bot
+    SetEnvIfNoCase User-Agent "Dotbot" bad_bot
+    SetEnvIfNoCase User-Agent "MJ12bot" bad_bot
+    SetEnvIfNoCase User-Agent "BLEXBot" bad_bot
+    SetEnvIfNoCase User-Agent "SeekportBot" bad_bot
+    SetEnvIfNoCase User-Agent "DataForSeoBot" bad_bot
+    SetEnvIfNoCase User-Agent "Scrapy" bad_bot
+    SetEnvIfNoCase User-Agent "libwww-perl" bad_bot
+    SetEnvIfNoCase User-Agent "python-requests" bad_bot
+    SetEnvIfNoCase User-Agent "Go-http-client" bad_bot
+    
+    <Limit GET POST PUT>
+        Order Allow,Deny
+        Allow from all
+        Deny from env=bad_bot
+    </Limit>
+</IfModule>
+
+# 5. Protection globale des fichiers de configuration ou sensibles cachés
+<FilesMatch "(\.(env|sql|log|ini|sh|bak|config)|^\.ht)">
+    Require all denied
+</FilesMatch>

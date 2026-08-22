@@ -1,0 +1,3086 @@
+/* Version: v1.12.0 (Rev #14) - 2026-08-03 */
+/* ==========================================================================
+   PERFORMANCE & ACCÉLÉRATION MATÉRIELLE (GPU)
+   ========================================================================== */
+.bg-glass,
+.card,
+.bg-dark-soft,
+footer.footer {
+    /* Force une couche de composition GPU stable et isolée,
+       au lieu de recalculer le flou en boucle pendant le scroll */
+    will-change: backdrop-filter;
+    transform: translateZ(0);
+    contain: paint;
+}
+/* ===================================================
+    SECTION 1 : CONFIGURATION GLOBALE & VARIABLES (MBS_LIGHT)
+    =================================================== */
+:root {
+    /* Couleurs de fond et structure */
+    --bs-dark-rgb: 248, 250, 252 !important;
+        /* Devient un fond clair (gris très clair / blanc cassé) */
+    --bg-card: rgba(255, 255, 255, 0.85); /* Fond de carte blanc semi-transparent (effet glassmorphism clair) */
+    --glass-border: rgba(0, 0, 0, 0.1); /* Bordure subtile foncée pour contraster sur le clair */
+
+    /* Palette d'accents (adaptée pour garder du punch sur fond clair) */
+    --accent-blue: #0284c7;   /* Bleu un peu plus sombre/lumineux pour lisibilité */
+    --accent-purple: #6366f1; /* Violet ajusté */
+    --accent-cyan: #0891b2;   /* Cyan ajusté */
+    --accent-amber: #d97706;  /* Ambre/Orange plus sombre pour contraste */
+    --accent-red: #dc2626;    /* Rouge vif accessible */
+    --accent-green: #16a34a;  /* Vert accessible */
+
+    /* Typographie */
+    --text-main: #0f172a;   /* Texte principal sombre */
+    --text-muted: #475569;  /* Texte secondaire/grisé un peu plus foncé pour la lisibilité */
+}
+
+/* Transformer le texte blanc semi-transparent en texte sombre lisible pour le thème white sur les éléments partagés */
+.bg-glass .text-white-50,
+.table-custom-dark .text-white-50,
+body:not(.dark-mode) .text-white-50 {
+    /* Adapte le sélecteur parent selon ton thème white si besoin */
+    color: var(--text-muted) !important;
+}
+
+/* Application propre sur les cartes */
+.card,
+.bg-card-custom {
+    background-color: var(--bg-card) !important;
+    backdrop-filter: blur(10px);
+
+}
+body {
+    background: radial-gradient(circle at top right, #e2e8f0, #f8fafc) no-repeat fixed !important;
+    color: var(--text-main) !important;
+    font-family: 'Inter', 'Segoe UI', system-ui, sans-serif !important;
+    line-height: 1.6;
+    font-size: 16px;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    margin: 0;
+}
+
+.main-content {
+    flex: 1 0 auto;
+    padding-top: 60px;
+    padding-bottom: 60px;
+}
+
+/* Sécurité de couleur pour les textes génériques */
+p,
+span,
+div,
+label,
+strong,
+li {
+    color: inherit;
+}
+
+.fw-bold,
+.text-white {
+    color: var(--text-main) !important; /* S'adapte au texte sombre principal */
+}
+
+.text-muted,
+.small,
+.text-secondary {
+    color: var(--text-muted) !important; /* Utilise la variable de texte secondaire clair */
+    font-size: 0.9rem !important;
+}
+
+/* ===================================================
+   SECTION 2 : BASE & STRUCTURE (STICKY FOOTER ENGINE)
+   =================================================== */
+html,
+body {
+    height: 100%;
+    margin: 0;
+}
+
+body {
+    /* Moteur Flexbox pour le Sticky Footer */
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+
+    /* Design & Typographie MBS_LIGHT */
+    background: radial-gradient(circle at top right, #e2e8f0, #f8fafc) no-repeat fixed !important;
+    color: var(--text-main) !important;
+    font-family: 'Inter', 'Segoe UI', system-ui, sans-serif !important;
+    line-height: 1.6;
+}
+
+/* ==========================================
+   Gestion utilisateurs - Container spécifique
+   Largeur optimisée tableau administration
+========================================== */
+
+.container-admin-users {
+    width: 100%;
+    max-width: 1480px;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 20px;
+    padding-right: 20px;
+}
+
+/* Le moteur du bas de page */
+.flex-fill,
+.main-content {
+    flex: 1 0 auto;
+    padding-top: 40px;
+    padding-bottom: 40px;
+}
+
+/* ==========================================
+   Gestion affichage email utilisateurs
+========================================== */
+
+.user-email {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
+}
+
+/* ==========================================================================
+   SECTION 1 : STRUCTURE ET CONFIGURATION GÉNÉRALE DU TABLEAU
+   ========================================================================== */
+.table-custom-dark {
+    color: var(--text-main) !important;
+    margin-top: 15px;
+    border-collapse: separate;
+    border-spacing: 10px 8px !important;
+    background: transparent;
+}
+
+.table-custom-dark th,
+.table-custom-dark td {
+    vertical-align: middle !important;
+}
+
+.table-custom-dark thead th {
+    border: none;
+    text-transform: uppercase;
+    font-size: 0.7rem;
+    letter-spacing: 1px;
+    color: rgba(255, 255, 255, 0.4);
+    padding: 12px 15px !important;
+    background: rgba(255, 255, 255, 0.03) !important;
+    border-bottom: 2px solid var(--glass-border) !important;
+}
+
+.table-custom-dark tbody tr {
+    background: rgba(255, 255, 255, 0.02);
+    transition: all 0.2s ease;
+}
+
+.table-custom-dark tbody tr:hover {
+    background: rgba(255, 255, 255, 0.05) !important;
+    transform: scale(1.005);
+}
+
+.table-custom-dark td {
+    border: none;
+    padding: 15px !important;
+    vertical-align: middle;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+    background: transparent !important;
+}
+
+.table-custom-dark tbody tr td:first-child {
+    border-radius: 10px 0px 0px 10px;
+}
+
+.table-custom-dark tbody tr td:last-child {
+    border-radius: 10px 10px 10px 10px;
+}
+
+.table-custom-dark a.text-info:hover {
+    color: #00d4ff !important;
+    text-shadow: 0 0 8px rgba(0, 212, 255, 0.5);
+    transition: all 0.3s ease;
+}
+table.table-dark.table-custom-dark {
+    color: var(--text-main) !important;
+    background-color: transparent !important;
+}
+
+table.table-dark.table-custom-dark th,
+table.table-dark.table-custom-dark td {
+    color: var(--text-main) !important;
+    background-color: transparent !important;
+    --bs-table-hover-bg: #d0d1d3 !important;
+}
+
+
+/* ==========================================================================
+   SECTION 2 : INDICATEURS DE STATUT (BORDURES LATÉRALES)
+   ========================================================================== */
+.table-custom-dark td.border-solde {
+    border-style: solid !important;
+    border-color: #22c55e !important;
+    border-width: 0 0 0 4px !important;
+}
+
+.table-custom-dark td.border-en-retard {
+    border-style: solid !important;
+    border-color: #ef4444 !important;
+    border-width: 0 0 0 4px !important;
+}
+
+.table-custom-dark td.border-a-venir {
+    border-style: solid !important;
+    border-color: #fbbf24 !important;
+    border-width: 0 0 0 4px !important;
+}
+
+.table-custom-dark td:first-child.border-solde {
+    border-left: 4px solid #22c55e !important;
+}
+
+.table-custom-dark td:first-child.border-en-retard {
+    border-left: 4px solid #ef4444 !important;
+}
+
+.table-custom-dark td:first-child.border-a-venir {
+    border-left: 4px solid #fbbf24 !important;
+}
+
+
+/* ==========================================================================
+   SECTION 3 : GESTION DES CELLULES .BG-GLASS ET ARRONDIS AVANCÉS
+   ========================================================================== */
+.table-custom-dark td.bg-glass {
+    border-left: none !important;
+    border-right: none !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+.table-custom-dark td:last-child.bg-glass {
+    border-right: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 10px;
+}
+
+.table-custom-dark td.bg-glass:first-of-type {
+    border-radius: 10px 0 0 10px;
+}
+
+.table-custom-dark td.bg-glass.border-solde:not(td.border-solde + td) {
+    border-left: 4px solid #22c55e !important;
+}
+
+.table-custom-dark td.bg-glass.border-en-retard:not(td.border-en-retard + td) {
+    border-left: 4px solid #ef4444 !important;
+}
+
+.table-custom-dark td.bg-glass.border-a-venir:not(td.border-a-venir + td) {
+    border-left: 4px solid #fbbf24 !important;
+}
+
+
+/* ==========================================================================
+   SECTION 4 : PROGRESSION & BARRES NÉON
+   ========================================================================== */
+.progress-custom-dark {
+    background: rgba(0, 0, 0, 0.4) !important;
+    height: 12px !important;
+    border-radius: 50px !important;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    overflow: visible;
+}
+
+.progress-bar-neon {
+    background: linear-gradient(90deg, #2ecc71, #00ff87) !important;
+    border-radius: 50px !important;
+    box-shadow: 0 0 15px rgba(46, 204, 113, 0.5);
+    position: relative;
+    transition: width 1s ease-in-out;
+}
+
+.progress-bar-neon::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0.2), transparent);
+    border-radius: 50px;
+}
+
+.progress-table {
+    width: 100px !important;
+    margin: 0 !important;
+}
+
+
+/* ==========================================================================
+   SECTION 5 : RESPONSIVE MOBILE (TRANSFORMATION TABLEAU EN CARTES)
+   ========================================================================== */
+@media (max-width: 767.98px) {
+    .table-custom-dark thead {
+        display: none !important;
+    }
+
+    .table-custom-dark tbody tr {
+        display: block !important;
+        margin-bottom: 20px !important;
+        background: rgba(255, 255, 255, 0.05) !important;
+        border-radius: 15px !important;
+        padding: 12px !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        position: relative;
+    }
+
+    .table-custom-dark td {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        border: none !important;
+        padding: 10px 5px !important;
+        width: 100% !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+    }
+
+    .table-custom-dark td::before {
+        content: attr(data-label);
+        font-weight: bold;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        color: rgba(255, 255, 255, 0.4);
+    }
+
+    .table-custom-dark td.td-origine {
+        display: block !important;
+        text-align: center !important;
+        background: rgba(0, 123, 255, 0.1);
+        margin: -12px -12px 10px -12px;
+        padding: 15px !important;
+        border-radius: 15px 15px 0 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+    }
+
+    .table-custom-dark td.td-origine::before {
+        display: block;
+        margin-bottom: 5px;
+    }
+
+    .table-custom-dark td.td-actions {
+        border-bottom: none !important;
+        justify-content: center !important;
+        padding-top: 15px !important;
+    }
+
+    .table-custom-dark td.td-actions .d-flex {
+        width: 100%;
+        justify-content: center !important;
+        gap: 10px;
+    }
+
+    .btn-payer-neon,
+    .btn-modifier-neon {
+        flex: 1;
+        text-align: center;
+    }
+}
+
+
+/* ==========================================================================
+   SECTION 6 : COMPOSANTS, BADGES ET MISES EN PAGE COMPLÉMENTAIRES
+   ========================================================================== */
+.card-achat-hover .d-flex.justify-content-between {
+    flex-direction: column;
+    align-items: center !important;
+    text-align: center;
+}
+
+.card-achat-hover .text-start {
+    text-align: center !important;
+    margin-bottom: 15px;
+}
+
+.badge-percent {
+    font-size: 1.1rem !important;
+}
+
+.badge-status {
+    font-size: 0.75rem;
+    padding: 5px 8px;
+}
+
+.table-custom-dark .badge-neon {
+    font-size: 0.65rem !important;
+    padding: 4px 8px !important;
+    letter-spacing: 0.5px;
+}
+
+/* ****************************************************** */
+/* ** SECTION : QUICK CARD - ACCÈS RAPIDES              ** */
+/* ****************************************************** */
+
+/*
+===========================================================
+RÔLE :
+-----------------------------------------------------------
+Cartes de navigation principales du Dashboard.
+
+Ce composant est destiné à devenir le composant standard
+des accès rapides dans toute l'application.
+
+Evolution prévue :
+- badges
+- compteurs
+- notifications
+- état des modules
+===========================================================
+*/
+
+/* Appliquer l'ombre personnalisée sur les cartes ou leur corps */
+.card-body,
+.card {
+    box-shadow: 0 10px 30px rgba(132, 116, 190, 0.4) !important;
+    border-radius: 20px !important;
+    overflow: hidden !important;
+        /* Supprime la bordure native de Bootstrap qui crée souvent un angle droit parasite */
+}
+
+
+.quick-card {
+
+    display: block;
+
+    height: 100%;
+
+    text-decoration: none;
+
+    color: inherit;
+
+}
+
+
+.quick-card-body {
+
+    background: var(--glass-bg);
+
+    backdrop-filter: blur(14px);
+
+    border: 1px solid rgba(255, 255, 255, .08);
+
+    border-radius: 20px;
+
+    padding: 30px;
+
+    height: 100%;
+
+    transition: .30s ease;
+
+    box-shadow: 0 10px 30px rgba(0, 0, 0, .25);
+
+}
+
+
+.quick-card-body:hover {
+
+    transform: translateY(-6px);
+
+    border-color: rgba(0, 255, 255, .30);
+
+    box-shadow:
+        0 15px 35px rgba(0, 255, 255, .12),
+        0 0 25px rgba(0, 255, 255, .10);
+
+}
+
+
+.quick-card-icon {
+
+    font-size: 3rem;
+
+    margin-bottom: 18px;
+
+    text-align: center;
+
+}
+
+
+.quick-card-title {
+
+    color: #ffffff;
+
+    text-align: center;
+
+    font-weight: 700;
+
+    font-size: 1.35rem;
+
+    margin-bottom: 15px;
+
+}
+
+
+.quick-card-text {
+    color: var(--text-muted); /* Ou une couleur sombre comme #475569 */
+    text-align: center;
+    line-height: 1.6;
+    min-height: 70px;
+    margin-bottom: 25px;
+}
+
+
+
+.quick-card-footer {
+
+    text-align: center;
+
+    font-weight: 600;
+
+    color: #5fd8ff;
+
+    letter-spacing: .5px;
+
+}
+
+/* ****************************************************** */
+/* ** SECTION LISTES DASHBOARD                          ** */
+/* ****************************************************** */
+
+
+.dashboard-list {
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 12px;
+
+}
+
+
+
+.dashboard-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 15px;
+    border-radius: 12px;
+    background: rgba(0, 0, 0, 0.02); /* Fond très légèrement grisé/foncé pour contraster sur le blanc */
+    border: 1px solid rgba(0, 0, 0, 0.06); /* Bordure subtile foncée */
+    color: var(--text-main); /* Utilise ton texte principal sombre */
+}
+
+/* ===================================================
+   SECTION 3 : TYPOGRAPHIE & TITRES
+   =================================================== */
+.main-title,
+h1 {
+    font-size: 2.5rem !important;
+    font-weight: 800 !important;
+    color: var(--text-main) !important;
+    margin-bottom: 2.5rem !important;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 15px;
+    width: 100%;
+    background: none !important;
+    -webkit-background-clip: initial !important;
+    background-clip: initial !important;
+    -webkit-text-fill-color: var(--text-main) !important;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.emoji {
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.15)) !important;
+    -webkit-text-fill-color: initial !important;
+    display: inline-block;
+}
+
+h2 {
+    font-size: 1.8rem !important;
+    font-weight: 700 !important;
+    color: var(--text-main) !important;
+    text-align: center;
+    margin-bottom: 2rem !important;
+}
+
+.dashboard-subtitle {
+    font-family: 'Inter', 'Segoe UI', sans-serif;
+    font-weight: 900;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+    display: block;
+    width: 100%;
+}
+
+/* ===================================================
+   SECTION 4 : BADGES & STATUTS NÉONS
+   =================================================== */
+.badge-cat-neon {
+    background: rgba(0, 0, 0, 0.06);
+    color: var(--text-main);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.badge-warning-pulse {
+    background-color: rgba(220, 53, 69, 0.12) !important;
+    color: #dc3545 !important;
+    border: 1px solid #dc3545 !important;
+    font-weight: 800;
+    text-transform: uppercase;
+    animation: neon-pulse-danger 1.5s infinite;
+}
+
+@keyframes neon-pulse-danger {
+    0% {
+        box-shadow: 0 0 5px rgba(220, 53, 69, 0.4);
+        border-color: rgba(220, 53, 69, 0.5);
+    }
+
+    50% {
+        box-shadow: 0 0 15px rgba(220, 53, 69, 0.8);
+        border-color: rgba(220, 53, 69, 1);
+    }
+
+    100% {
+        box-shadow: 0 0 5px rgba(220, 53, 69, 0.4);
+        border-color: rgba(220, 53, 69, 0.5);
+    }
+}
+
+/* ===================================================
+   SECTION 5 : SYSTÈME DE BOUTONS
+   =================================================== */
+
+/* ==========================================
+   Bouton suspension utilisateur
+========================================== */
+
+.btn-suspendre-neon {
+    padding: 6px 15px;
+    background: rgba(239, 68, 68, 0.05);
+    border: 1px solid #ef4444 !important;
+    border-radius: 8px;
+    color: #ef4444 !important;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    transition: all 0.3s ease;
+}
+
+.btn-suspendre-neon:hover {
+    background: rgba(239, 68, 68, 0.15);
+    box-shadow: 0 0 12px rgba(239, 68, 68, 0.5);
+}
+
+/* ==========================================
+   Bouton réactivation utilisateur
+========================================== */
+
+.btn-reactiver-neon {
+    padding: 6px 15px;
+    background: rgba(34, 197, 94, 0.05);
+    border: 1px solid #22c55e !important;
+    border-radius: 8px;
+    color: #22c55e !important;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    transition: all 0.3s ease;
+}
+
+.btn-reactiver-neon:hover {
+    background: rgba(34, 197, 94, 0.15);
+    box-shadow: 0 0 12px rgba(34, 197, 94, 0.5);
+}
+
+/* 5.1 Boutons standards Bootstrap */
+.btn-primary {
+    background: linear-gradient(135deg, var(--accent-blue), #0284c7) !important;
+    border: none !important;
+    font-weight: 600 !important;
+    padding: 12px 30px !important;
+    box-shadow: 0 4px 15px rgba(56, 189, 248, 0.3) !important;
+    color: #ffffff !important;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(56, 189, 248, 0.5) !important;
+}
+
+/* 5.2 Boutons d'Action Dashboard */
+.btn-action-dash {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-transform: uppercase;
+    font-weight: 700;
+    font-size: 0.75rem;
+    letter-spacing: 1px;
+    border-radius: 12px !important;
+    transition: all 0.3s ease;
+    background: rgba(0, 0, 0, 0.03); /* Fond très légèrement grisé adapté au clair */
+    border: 1px solid rgba(0, 0, 0, 0.1); /* Bordure sombre subtile */
+    color: var(--text-main) !important; /* Texte sombre principal lisible */
+    text-decoration: none;
+    padding: 8px 12px; /* Padding compact unique */
+    flex: 1 1 auto;
+    min-width: 120px;
+    max-width: 200px;
+}
+
+.btn-action-dash:hover {
+    transform: translateY(-3px);
+    color: var(--text-main) !important;
+    filter: brightness(0.95);
+    letter-spacing: 1.5px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* Variantes Hover Action Dash */
+.btn-dash-green:hover {
+    border-color: #2ecc71 !important;
+    color: #2ecc71 !important;
+    box-shadow: 0 0 10px rgba(46, 204, 113, 0.3);
+}
+
+.btn-dash-silver:hover {
+    border-color: #64748b !important; /* Ajusté pour un meilleur contraste sur fond clair que le gris argenté trop pâle */
+    color: #64748b !important;
+    box-shadow: 0 0 10px rgba(100, 116, 139, 0.3);
+}
+
+.btn-dash-blue:hover {
+    border-color: #3498db !important;
+    color: #3498db !important;
+    box-shadow: 0 0 10px rgba(52, 152, 219, 0.3);
+}
+
+.btn-dash-orange:hover {
+    border-color: #e67e22 !important;
+    color: #e67e22 !important;
+    box-shadow: 0 0 10px rgba(230, 126, 34, 0.3);
+}
+
+.btn-dash-indigo:hover {
+    border-color: #6610f2 !important;
+    color: #6610f2 !important;
+    box-shadow: 0 0 10px rgba(102, 16, 242, 0.3);
+}
+
+/* 5.3 Boutons Néons */
+.btn-neon-cyan,
+.btn-neon-purple,
+.btn-outline-accent-blue {
+    text-transform: uppercase;
+    font-weight: 600;
+    font-size: 0.85rem;
+    padding: 8px 15px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    background: rgba(0, 0, 0, 0.02);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-neon-cyan {
+    color: #0284c7 !important; /* Version un peu plus sombre et contrastée que le cyan fluo */
+    border: 1px solid #0284c7 !important;
+    box-shadow: 0 0 5px rgba(2, 132, 199, 0.2);
+}
+
+.btn-neon-cyan:hover {
+    background: #0284c7 !important;
+    color: #ffffff !important;
+    box-shadow: 0 0 15px rgba(2, 132, 199, 0.4);
+}
+
+.btn-neon-purple {
+    color: #9333ea !important; /* Version adaptée pour un super contraste sur fond clair */
+    border: 1px solid #9333ea !important;
+    box-shadow: 0 0 5px rgba(147, 51, 234, 0.2);
+}
+
+.btn-neon-purple:hover {
+    background: #9333ea !important;
+    color: #fff !important;
+    box-shadow: 0 0 15px rgba(147, 51, 234, 0.4);
+}
+
+/* 5.4 Boutons Statuts Rapides */
+.btn-payer-neon {
+    padding: 8px 20px;
+    color: var(--text-main) !important;
+    background: rgba(0, 180, 216, 0.08);
+    border: 1px solid #00b4d8 !important;
+    border-radius: 8px;
+    font-weight: 600;
+    box-shadow: 0 0 5px rgba(0, 180, 216, 0.2);
+    transition: all 0.3s ease-in-out;
+}
+
+.btn-payer-neon:hover {
+    background: rgba(0, 180, 216, 0.2);
+    box-shadow: 0 0 10px rgba(0, 180, 216, 0.4);
+    color: #0284c7 !important;
+}
+
+/* Classe personnalisée pour le bouton de fermeture des alertes Flash */
+.btn-flash-close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: rgba(220, 53, 69, 0.1) !important;
+    border: 1px solid #dc3545 !important;
+    color: #dc3545 !important;
+    font-weight: bold;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    text-decoration: none;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+/* Effet au survol pour plus d'interactivité */
+.btn-flash-close:hover {
+    background-color: #dc3545 !important;
+    border-color: #dc3545 !important;
+    color: #ffffff !important;
+    transform: scale(1.05);
+}
+
+/* ===================================================
+   SECTION 5 (Suite) : RESPONSIVE BOUTONS
+   =================================================== */
+.btn-modifier-neon {
+    padding: 6px 15px;
+    background: rgba(217, 119, 6, 0.08);
+    border: 1px solid #d97706 !important;
+    border-radius: 8px;
+    color: #d97706 !important;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    transition: all 0.3s ease;
+}
+
+.btn-modifier-neon:hover {
+    background: #d97706 !important;
+    color: #ffffff !important;
+    box-shadow: 0 0 15px rgba(217, 119, 6, 0.4);
+}
+
+/* Style spécifique pour le bouton supprimer (Règle : pas de style inline) */
+.btn-delete-dash {
+    --btn-color: #ef4444;
+    --btn-glow: rgba(239, 68, 68, 0.2);
+}
+
+/* On peut ici ajouter des effets au survol si besoin dans la feuille de style */
+.btn-delete-dash:hover {
+    filter: brightness(0.95);
+}
+
+/* Thème Glass pour les messages de confirmation */
+.card-confirm-delete {
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+    border-radius: 20px;
+}
+
+.border-accent-blue {
+    border: 1px solid rgba(2, 132, 199, 0.3);
+}
+
+/* Bouton retour vers le haut */
+/* ===================================================
+   STYLES BOUTON “RETOUR EN HAUT” AVANCÉ
+   =================================================== */
+#scrollTopBtn {
+    position: fixed;
+    /* toujours visible à l'écran */
+    bottom: 30px;
+    right: 30px;
+    z-index: 9999;
+    padding: 12px 16px;
+    border-radius: 50%;
+    font-size: 1.5rem;
+    cursor: pointer;
+    background: rgba(255, 255, 255, 0.9); /* Fond blanc légèrement opaque pour ne pas se mélanger avec le contenu */
+    color: #0284c7; /* Bleu plus contrasté sur fond clair */
+    border: 1px solid rgba(2, 132, 199, 0.3);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Ombre douce portée pour le détacher du fond */
+
+    /* Initialisation pour animation */
+    opacity: 0;
+    /* invisible au départ */
+    transform: translateY(40px);
+    /* légèrement décalé vers le bas */
+    transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+/* Hover : lueur et légère augmentation de taille */
+#scrollTopBtn:hover {
+    background: #0284c7;
+    color: #ffffff;
+    transform: scale(1.15);
+    box-shadow: 0 0 15px rgba(2, 132, 199, 0.4);
+}
+
+/* Classe ajoutée via JS lorsque le bouton doit apparaître */
+#scrollTopBtn.show {
+    opacity: 1;
+    transform: translateY(0);
+    /* position normale */
+}
+
+/* Pulse léger au repos */
+@keyframes pulseNeon {
+    0% {
+        box-shadow: 0 0 8px rgba(2, 132, 199, 0.2), 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    50% {
+        box-shadow: 0 0 15px rgba(2, 132, 199, 0.4), 0 6px 16px rgba(0, 0, 0, 0.15);
+    }
+
+    100% {
+        box-shadow: 0 0 8px rgba(2, 132, 199, 0.2), 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+}
+
+#scrollTopBtn.pulse {
+    animation: pulseNeon 2s infinite ease-in-out;
+}
+
+/* ===================================================
+   SECTION 6 : DASHBOARD MBS_LIGHT (CADRES & KPI)
+   =================================================== */
+
+/* 6.1 Positionnement & Conteneurs Principaux */
+.nav-dashboard-container {
+    margin-top: 13px !important;
+    margin-bottom: 50px !important;
+}
+
+.container-principal-glass {
+    display: flow-root;
+    overflow: visible !important;
+    /* Correction débordement */
+    padding-bottom: 50px !important;
+    margin-bottom: 100px;
+}
+
+/* 6.2 Cartes Glassmorphism KPI */
+.glass-card-nav {
+    background: var(--bg-card) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px);
+
+    border: 1px solid var(--glass-border) !important;
+    border-radius: 20px !important;
+
+    /* On remonte l'opacité de 0.06 à 0.18 pour qu'elle devienne bien visible */
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18) !important;
+
+    color: var(--text-main) !important;
+
+    padding: 20px 30px !important;
+
+    transition:
+        transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+        box-shadow 0.3s ease,
+        border 0.3s ease;
+}
+
+.glass-card-nav:hover {
+    transform: translateY(-4px);
+    box-shadow:
+        0 15px 35px rgba(2, 132, 199, 0.08),
+        0 0 25px rgba(2, 132, 199, 0.05) !important;
+        
+}
+
+
+/* Ancienne classe conservée pour les autres blocs */
+/* Blocs génériques Glass */
+.bg-glass {
+    background: rgba(255, 255, 255, 0.75) !important;
+
+    backdrop-filter: blur(10px) !important;
+    -webkit-backdrop-filter: blur(10px);
+
+    border: 1px solid var(--glass-border) !important;
+    border-radius: 20px !important;
+
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06) !important;
+
+    color: var(--text-main) !important;
+
+    margin-top: 30px;
+    padding: 20px 30px !important;
+}
+
+.bg-glass-compteur {
+    background: rgba(255, 255, 255, 0.75);
+
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+
+    border: 1px solid var(--glass-border);
+
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.04);
+    font-size: 1.2rem !important;
+    border-radius: 10px !important;
+    margin-bottom: 0px !important;
+}
+
+.glass-card-nav:hover,
+.bg-glass:hover {
+    border: 1px solid rgba(2, 132, 199, 0.4) !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08), 0 0 15px rgba(2, 132, 199, 0.15);
+    transform: translateY(-3px);
+}
+
+
+.card.bg-glass {
+    border: 1px solid var(--glass-border) !important;
+}
+
+
+/* Neutralisation marges Bootstrap sur Dashboard */
+.nav-dashboard-container .row {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+}
+
+/* ===================================================
+   SECTION : KPI & Progress Bars
+   =================================================== */
+.card-kpi {
+    padding: 1.5rem !important;
+    text-align: center;
+    margin-bottom: 10px;
+    border-radius: 15px !important;
+    transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Effet survol KPI */
+.card-kpi:hover {
+    transform: translateY(-5px);
+    border-color: var(--accent-blue) !important;
+    position: relative;
+    z-index: 20;
+}
+
+.progress-custom-dark {
+    background: rgba(0, 0, 0, 0.06) !important;
+    height: 12px !important;
+    border-radius: 10px !important;
+    overflow: hidden;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.progress-bar-neon {
+    background: linear-gradient(90deg, var(--accent-blue), #0284c7) !important;
+    box-shadow: 0 0 10px rgba(2, 132, 199, 0.3);
+}
+
+/* 6.4 Typographie interne Dashboard (FUSIONNÉ) */
+.dashboard-subtitle {
+    display: block;
+    width: 100%;
+    color: #0284c7;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+    opacity: 0.9;
+}
+
+/* 6.5 Éléments de navigation & Actions */
+.btn-dark.opacity-75 {
+    background: rgba(0, 0, 0, 0.04) !important;
+    border: 1px solid rgba(0, 0, 0, 0.1) !important;
+    color: var(--text-muted) !important;
+}
+
+.btn-dark.opacity-75:hover {
+    background: var(--accent-blue) !important;
+    color: #fff !important;
+    opacity: 1;
+}
+
+/* ===================================================
+   SECTION 7 : SYSTÈME DE BADGES & STATUTS (FUSIONNÉ)
+   =================================================== */
+
+/* Base commune pour tous les badges */
+.badge-marchand,
+.badge-cat-neon,
+.badge-cat,
+.badge-warning-pulse {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0.5em 0.8em !important;
+    font-size: 0.75rem !important;
+    font-weight: 600;
+    border-radius: 6px;
+    line-height: 1;
+    vertical-align: middle;
+    text-decoration: none;
+    white-space: nowrap;
+    height: 28px;
+    transition: all 0.3s ease-in-out;
+}
+
+.badge-compteur {
+    height: 42px;
+    display: flex;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+/* ===================================================
+   BADGE MARCHAND (Fusionné et optimisé)
+   =================================================== */
+.badge-marchand,
+.badge-echeancier {
+    font-size: 0.65rem;
+}
+   .badge-marchand {
+    background: rgba(2, 132, 199, 0.08) !important;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+        color: var(--accent-blue, #0284c7) !important;
+        border: 1px solid rgba(2, 132, 199, 0.4) !important;
+        transition: all 0.2s ease;
+}
+
+.badge-marchand:hover {
+    background: rgba(2, 132, 199, 0.15) !important;
+    border-color: var(--accent-blue, #0284c7) !important;
+        color: var(--accent-blue, #0284c7) !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(2, 132, 199, 0.2);
+}
+
+.badge-status {
+    padding: 5px 12px;
+    border-radius: 50px;
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    display: inline-block;
+    border: 1px solid rgba(0, 0, 0, 0.15); /* Bordure visible pour les statuts */
+}
+.badge.bg-secondary {
+    background-color: rgb(159, 161, 162) !important;
+}
+
+/* Animations UI */
+.chevron-rotate {
+    display: inline-block;
+    transition: transform 0.3s ease;
+    font-size: 0.8rem;
+    color: #0284c7;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ===================================================
+   SECTION 6 : CONTAINERS & COMPOSANTS (GLASSMORPHISM)
+   =================================================== */
+
+/* Classes spécifiques pour cette page uniquement */
+.echeance-label {
+    font-size: 1.1rem !important;
+    color: var(--text-muted);
+    /* Couleur de texte secondaire adaptée au thème clair */
+    margin-bottom: 0;
+    /* Supprime la marge pour alignement parfait */
+}
+
+.echeance-valeur {
+    font-size: 1.2rem !important;
+    font-weight: bold;
+    color: var(--text-main);
+}
+
+.stats-global-label {
+    font-size: 1rem !important;
+    font-weight: 500;
+    color: var(--text-muted);
+}
+
+/* Force l'alignement horizontal et vertical au centre de la card */
+.card-compact-flex {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+/* 6.1 Forcer la transparence sur les composants Bootstrap */
+.card,
+.list-group-item,
+.modal-content {
+    background-color: var(--bg-card) !important;
+    border: 1px solid var(--glass-border) !important;
+    color: var(--text-main) !important;
+    backdrop-filter: blur(10px);
+}
+
+/* 6.2 Stabilisation du container principal (Glass Panel) */
+.glass-panel {
+    width: 100% !important;
+    max-width: 1100px !important;
+    padding: 25px !important;
+    overflow: hidden;
+}
+
+/* Nettoyage des inter-sections et wrappers Bootstrap */
+.bg-light,
+.bg-white,
+.row>* {
+    background-color: transparent !important;
+}
+
+/* 6.3 Header Glass Spécifique */
+.glass-header {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--text-main);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin: 0;
+}
+
+.glass-header .emoji {
+    margin-right: 10px;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.15));
+}
+
+/* ===================================================
+   COLONNE ACTION - Gestion Utilisateur===================================================*/
+
+/* ----- TH de la colonne Action ----- */
+.th-action {
+    text-align: center;
+    /* Centrage du texte */
+    font-size: 0.75rem;
+    /* Taille similaire aux autres th */
+    text-transform: uppercase;
+    /* Majuscules pour uniformité */
+        font-weight: 700;
+        /* Gras pour titre */
+    letter-spacing: 1px;
+    /* Espacement des lettres */
+    color: var(--text-muted);
+    /* Couleur secondaire bien contrastée sur fond clair */
+        padding: 12px 8px !important;
+        /* Espacement interne */
+    background: rgba(0, 0, 0, 0.04) !important;
+    /* Fond très léger adapté au clair */
+    border-bottom: 2px solid rgba(0, 0, 0, 0.15) !important;
+    /* Bordure bien tranchée */
+}
+
+/* ----- TD de la colonne Action ----- */
+.td-action {
+    text-align: center;
+    /* Centrage des boutons */
+    vertical-align: middle;
+    /* Alignement vertical au milieu */
+        white-space: nowrap;
+        /* Empêche le texte de sauter à la ligne */
+        padding: 12px 8px !important;
+        /* Espacement interne uniforme */
+}
+
+/* ----- Boutons dans la colonne Action ----- */
+.td-action .btn-action-dash {
+    padding: 6px 12px;
+    /* Plus compact que les boutons principaux */
+    font-size: 0.75rem;
+    /* Taille de police adaptée au tableau */
+    border-radius: 8px;
+    /* Coins arrondis pour style glass */
+    margin: 0 2px;
+    /* Petit espace entre les boutons */
+    transition: all 0.3s ease;
+    /* Animation smooth au hover */
+}
+
+/* ----- Hover / Effet Néon pour les boutons (Doublon supprimé ici) ----- */
+
+/* Bouton bleu "Modifier" */
+.td-action .btn-dash-blue:hover {
+    border-color: #0284c7 !important;
+    /* Bordure accentuée */
+    color: #0284c7 !important;
+    /* Texte en accent bleu */
+        box-shadow: 0 0 10px rgba(2, 132, 199, 0.3);
+        /* Glow léger */
+}
+
+/* Bouton rouge "Supprimer" */
+.td-action .btn-dash-red:hover {
+    border-color: #dc2626 !important;
+    /* Bordure rouge */
+        color: #dc2626 !important;
+        /* Texte rouge */
+        box-shadow: 0 0 10px rgba(220, 38, 38, 0.3);
+        /* Glow rouge */
+}
+
+/* ===================================================
+                                                                                                                                                                                                                                                                                                                                                                                                   SECTION 8 : PROGRESSION & BARRES NÉON (FUSIONNÉ)
+===================================================*/
+.progress-custom-dark {
+    background: rgba(0, 0, 0, 0.08) !important;
+    height: 12px !important;
+    border-radius: 50px !important;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    overflow: visible;
+    /* Laisse passer le glow */
+}
+
+.progress-bar-neon {
+    background: linear-gradient(90deg, #16a34a, #22c55e) !important;
+    border-radius: 50px !important;
+    box-shadow: 0 0 10px rgba(22, 163, 74, 0.3);
+    position: relative;
+    transition: width 1s ease-in-out;
+}
+
+.progress-bar-neon::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0.3), transparent);
+    border-radius: 50px;
+}
+
+/* ===================================================
+                                                                                                                                                                                                                                                                                                                                                                                                   SECTION 9 : ALERTES,
+                                                                                                                                                                                                                                                                                                                                                                                                   BADGES & ANIMATIONS (FUSIONNÉ)===================================================*/
+
+/* 9.1 Badges Néon Dynamiques */
+.badge-cat {
+    font-size: 0.65rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+    color: var(--text-main);
+    background: rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    padding: 0.4em 0.6em;
+}
+
+/* 9.2 Points de pulsation (Alertes retard) */
+.pulse-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    background-color: #dc2626;
+    border-radius: 50%;
+    margin-left: 8px;
+    box-shadow: 0 0 0 rgba(220, 38, 38, 0.4);
+    animation: pulse-red 2s infinite;
+}
+
+/* 9.3 États de survol & Animations */
+.hover-blue:hover {
+    border-color: #0284c7 !important;
+    color: #0284c7 !important;
+    background: rgba(2, 132, 199, 0.08) !important;
+}
+
+@keyframes pulse-red {
+    0% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.7);
+    }
+
+    70% {
+        transform: scale(1);
+        box-shadow: 0 0 0 10px rgba(220, 38, 38, 0);
+    }
+
+    100% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(220, 38, 38, 0);
+    }
+}
+
+@keyframes soft-pulse {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4);
+    }
+
+    70% {
+        transform: scale(1.02);
+        box-shadow: 0 0 0 6px rgba(220, 53, 69, 0);
+    }
+
+    100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(220, 53, 69, 0);
+    }
+}
+
+@keyframes neon-pulse-danger {
+    0% {
+        box-shadow: 0 0 5px rgba(220, 53, 69, 0.4);
+        border-color: rgba(220, 53, 69, 0.6);
+    }
+
+    50% {
+        box-shadow: 0 0 12px rgba(220, 53, 69, 0.7);
+        border-color: rgba(220, 53, 69, 1);
+    }
+
+    100% {
+        box-shadow: 0 0 5px rgba(220, 53, 69, 0.4);
+        border-color: rgba(220, 53, 69, 0.6);
+    }
+}
+/* ===================================================
+   SECTION 9.1 : BADGES NÉON DYNAMIQUES
+   =================================================== */
+
+.badge-neon {
+    background: rgba(217, 119, 6, 0.15);
+    color: #b45309;
+    border: 1px solid rgba(217, 119, 6, 0.4);
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 4px 10px;
+    font-size: 0.65rem;
+    font-weight: 900;
+
+    border-radius: 50px;
+    line-height: 1;
+    box-sizing: border-box;
+
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+    transition: all 0.3s ease;
+
+    white-space: nowrap;
+}
+
+.badge-neon:hover {
+    box-shadow: 0 0 8px rgba(217, 119, 6, 0.25);
+}
+
+/* Badges dans titre / marchands */
+.badge-marchand,
+.badge-echeancier {
+    font-size: 0.65rem;
+}
+
+/* ===================================================
+   SECTION 11 : FORMULAIRES & INPUTS GLASSMORPHISM
+   =================================================== */
+label,
+.form-label {
+    color: var(--accent-blue) !important;
+    font-size: 0.9rem !important;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 8px;
+    font-weight: 700 !important;
+}
+
+.form-control,
+.form-select {
+    background: rgba(255, 255, 255, 0.9) !important;
+    border: 1px solid rgba(0, 0, 0, 0.15) !important;
+    color: var(--text-main) !important;
+    border-radius: 8px !important;
+    padding: 12px !important;
+}
+
+.form-control:focus,
+.form-select:focus {
+    background: #ffffff !important;
+    border-color: var(--accent-blue) !important;
+    box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15) !important;
+}
+
+.form-select option {
+    background-color: #ffffff !important;
+    color: var(--text-main) !important;
+}
+
+::placeholder {
+    color: var(--text-muted) !important;
+}
+
+/* --- Composant Header Formulaire MBS_DARK --- */
+
+.form-header-container {
+    display: flex;
+    align-items: center;
+    padding: 0 1rem;
+}
+
+/* La barre verticale néon */
+.form-header-accent {
+    border-left: 4px solid var(--accent-blue);
+    height: 55px;
+    border-radius: 2px;
+    margin-right: 1rem;
+}
+
+/* Le petit badge au-dessus (ACHAT, TOTAL, etc.) */
+.label-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    margin-bottom: 4px;
+    background: rgba(2, 132, 199, 0.1);
+    border: 1px solid rgba(2, 132, 199, 0.25);
+    border-radius: 4px;
+    color: var(--accent-blue);
+    font-weight: 900;
+    /* fw-black */
+    font-size: 0.75rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+/* Le titre principal (Nom de l'achat) */
+.data-title {
+    color: var(--text-main);
+    font-size: 1.8rem;
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.5px;
+    margin: 0;
+}
+
+/* Variantes de couleurs si besoin (ex: pour le TOTAL en Violet) */
+.label-badge-purple {
+    color: var(--accent-purple);
+    background: rgba(147, 51, 234, 0.1);
+    border-color: rgba(147, 51, 234, 0.25);
+}
+
+/* Style pour le label (le petit texte ACHAT) */
+.label-style {
+    letter-spacing: 2px;
+    font-size: 0.75rem !important;
+    text-transform: uppercase;
+    opacity: 0.8;
+}
+
+/* Style pour le titre (le nom de l'achat) */
+.title-style {
+    font-size: 1.8rem !important;
+    /* On augmente la taille ici */
+    line-height: 1.1;
+    color: var(--text-main);
+}
+
+/* Boîte d'icône Néon */
+.icon-box-neon {
+    width: 55px;
+    height: 55px;
+    background: rgba(2, 132, 199, 0.1);
+    border: 1px solid var(--accent-blue);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--accent-blue);
+}
+
+/* Espacement sous le titre glass */
+.dashboard-header-group {
+    margin-bottom: 2rem;
+}
+
+/* Ligne de séparation style Glass */
+.hr-glass {
+    border: 0;
+    height: 1px;
+    background: linear-gradient(to right, rgba(2, 132, 199, 0.3), rgba(147, 51, 234, 0.3), transparent);
+    margin: 1.5rem 0;
+    opacity: 1;
+}
+
+/* Harmonisation des boutons d'action */
+.header-actions {
+    display: flex;
+    gap: 15px;
+    /* Espace régulier entre les boutons */
+    margin-top: 1.5rem;
+    /* Espace entre le titre et les boutons */
+}
+
+.header-actions .btn-neon-ac {
+    min-width: 180px;
+    /* Largeur minimale identique pour tous les boutons */
+    text-align: center;
+    padding: 10px 20px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    font-weight: bold;
+    border-radius: 8px;
+}
+
+/* ===================================================
+   SECTION 12 : FOOTER (VERSION CENTRÉE & PURGÉE)
+   =================================================== */
+footer.footer {
+    flex-shrink: 0;
+    width: 90%;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    /* Remplace par ta couleur de contraste ou ta variable dédiée */
+    background: #555d6a !important; /* Exemple d'un fond sombre contrasté, ou mets ta couleur/variable ici */
+    backdrop-filter: none !important; /* On retire le flou si tu veux un fond plein et net pour le contraste */
+    -webkit-backdrop-filter: none !important;
+    color: #FFFFFF !important; /* Texte en blanc puisque le fond devient contrasté */
+    border-radius: 30px 30px 0 0 !important;
+    border: 1px solid var(--glass-border) !important;
+    border-bottom: none !important;
+    margin-top: 100px !important;
+    padding: 3rem 0 !important;
+    position: relative;
+}
+
+
+.footer-link {
+    transition: all 0.3s ease !important;
+    position: relative;
+    color: var(--text-muted) !important;
+    text-decoration: none !important;
+}
+
+.footer-link:hover {
+    color: #FFFFFF !important;
+    text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+}
+
+footer.footer .text-muted {
+    color: rgba(255, 255, 255, 0.5) !important;
+}
+
+@media (max-width: 768px) {
+    footer.footer {
+        margin-top: 50px !important;
+        padding: 2rem 1rem !important;
+        text-align: center;
+    }
+
+    footer.footer .d-flex {
+        gap: 15px;
+        flex-direction: column;
+    }
+}
+
+/* ===================================================
+   SURCHARGE PRIORITAIRE DES BOUTONS DU FOOTER
+   (Doit rester en toute fin de fichier)
+   =================================================== */
+
+/* Effet cadre de bouton sur les liens du footer */
+footer.footer a.footer-btn,
+footer.footer .footer-btn {
+    display: inline-block !important;
+    padding: 0.35rem 0.85rem !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    border-radius: 6px !important;
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    color: #ffffff !important;
+    /* Force la visibilité sur le fond sombre du footer */
+    text-decoration: none !important;
+    font-weight: 500 !important;
+    transition: all 0.2s ease-in-out !important;
+}
+
+/* Effet au survol (hover) */
+footer.footer a.footer-btn:hover,
+footer.footer .footer-btn:hover {
+    background-color: rgba(255, 255, 255, 0.25) !important;
+    border-color: rgba(255, 255, 255, 0.5) !important;
+    color: #ffffff !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Cadre pour la section horloge / statut */
+footer.footer .footer-status {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 0.4rem !important;
+    padding: 0.35rem 0.85rem !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    border-radius: 6px !important;
+    background-color: rgba(255, 255, 255, 0.05) !important;
+    
+}
+
+footer.footer .badge-neon {
+    box-sizing: border-box;
+    box-shadow: 0 0 8px rgba(230, 126, 34, 0.4) !important;
+    transition: all 0.3s ease;
+}
+
+footer.footer #real-time-clock {
+    color: #FFFFFF !important;
+}
+
+/* Style capsule pour la marque MBS + Version */
+footer.footer .footer-brand-pill {
+    display: inline-flex !important;
+    align-items: center !important;
+    padding: 0.25rem 0.6rem !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    border-radius: 6px !important;
+    background-color: rgba(255, 255, 255, 0.05) !important;
+    transition: all 0.2s ease-in-out !important;
+}
+
+footer.footer .footer-brand-pill:hover {
+    background-color: rgba(255, 255, 255, 0.15) !important;
+    border-color: rgba(255, 255, 255, 0.3) !important;
+    transform: translateY(-1px) !important;
+}
+
+footer.footer .brand-text {
+    color: #ffffff !important;
+    letter-spacing: 0.5px;
+}
+
+.footer-logo {
+    height: 28px;
+    width: auto;
+    object-fit: contain;
+    vertical-align: middle;
+}
+.header-logo {
+    height: 88px;
+    width: auto;
+    object-fit: contain;
+    vertical-align: middle;
+}
+
+
+/* ===================================================
+   SECTION 13 : ANIMATIONS & KEYFRAMES (FUSIONNÉ)
+   =================================================== */
+.pulse-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    background-color: #dc2626;
+    border-radius: 50%;
+    margin-left: 8px;
+    box-shadow: 0 0 0 rgba(220, 38, 38, 0.4);
+    animation: pulse-red 2s infinite;
+}
+
+.pulse-animation {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse-red {
+    0% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.7);
+    }
+
+    70% {
+        transform: scale(1);
+        box-shadow: 0 0 0 10px rgba(220, 38, 38, 0);
+    }
+
+    100% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(220, 38, 38, 0);
+    }
+}
+
+@keyframes pulse {
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.6;
+    }
+}
+
+/* ===================================================
+   SECTION 11 (Suite) : FORMULAIRES & CONTAINERS (FUSIONNÉ)
+   =================================================== */
+
+/* 11.1 Container principal (Mode Clair / Light Theme) */
+
+.container {
+    background: var(--bg-card) !important;
+    border: 1px solid rgba(0, 0, 0, 0.12) !important;
+    border-radius: 20px !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05) !important;
+    color: var(--text-main) !important;
+}
+
+/* 11.2 Titres de formulaires */
+h2.text-center {
+    color: var(--accent-blue) !important;
+    text-transform: uppercase;
+    font-weight: 800;
+    letter-spacing: 2px;
+    text-shadow: none;
+}
+
+/* 11.3 Labels & Champs */
+.form-label {
+    color: var(--text-muted) !important;
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.form-control,
+.form-select {
+    background: rgba(255, 255, 255, 0.9) !important;
+    border: 1px solid rgba(0, 0, 0, 0.15) !important;
+    color: var(--text-main) !important;
+    border-radius: 8px !important;
+    padding: 10px 15px !important;
+    transition: all 0.3s ease !important;
+}
+
+.form-control:focus,
+.form-select:focus {
+    background: #ffffff !important;
+    border-color: var(--accent-blue) !important;
+    box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15) !important;
+    outline: none;
+}
+
+/* 11.4 Alertes & Messages de retour */
+.alert {
+    border-radius: 12px !important;
+    border: none !important;
+    font-weight: 600;
+}
+
+.alert-danger {
+    background: rgba(220, 38, 38, 0.1) !important;
+    color: #b91c1c !important;
+    border: 1px solid rgba(220, 38, 38, 0.25) !important;
+}
+
+.alert-success {
+    background: rgba(22, 163, 74, 0.1) !important;
+    color: #15803d !important;
+    border: 1px solid rgba(22, 163, 74, 0.25) !important;
+}
+
+/* ===================================================
+   SECTION 5 (Suite) : BOUTONS DE FORMULAIRES
+   =================================================== */
+.btn-success {
+    background: linear-gradient(135deg, #22c55e, #16a34a) !important;
+    border: none !important;
+    box-shadow: 0 4px 15px rgba(34, 197, 94, 0.15) !important;
+    font-weight: 600 !important;
+    color: #ffffff !important;
+    transition: all 0.3s ease;
+}
+
+/* ===================================================
+   VERSION AMÉLIORÉE : BOUTON SECONDAIRE GLASS
+   =================================================== */
+.btn-secondary {
+    background: rgba(0, 0, 0, 0.04) !important;
+    backdrop-filter: blur(8px);
+    /* Effet de flou sous le bouton */
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(0, 0, 0, 0.12) !important;
+    color: var(--text-main) !important;
+    border-radius: 10px !important;
+    padding: 8px 20px !important;
+    font-weight: 500 !important;
+    letter-spacing: 0.5px;
+    text-transform: none !important;
+    /* Ta règle de casse respectée */
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-secondary:hover {
+    background: rgba(0, 0, 0, 0.08) !important;
+    border-color: rgba(0, 0, 0, 0.25) !important;
+    color: var(--text-main) !important;
+    transform: translateX(-5px);
+    /* Petit décalage vers la gauche pour l'effet "Retour" */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.06) !important;
+}
+
+/* Optionnel : Ajout d'une ombre interne pour le relief */
+.btn-secondary:active {
+    transform: scale(0.96);
+}
+
+/* Variante Succès pour le formulaire (Créer) */
+.btn-create-dash {
+    background: rgba(22, 163, 74, 0.1) !important;
+    /* Vert translucide clair */
+    border: 1px solid rgba(22, 163, 74, 0.3) !important;
+    color: #15803d !important;
+    /* On reprend les mêmes bases que btn-secondary pour la taille */
+    border-radius: 12px !important;
+    padding: 10px 22px !important;
+    font-weight: 600 !important;
+    text-transform: none !important;
+    transition: all 0.3s ease !important;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-create-dash:hover {
+    background: rgba(22, 163, 74, 0.18) !important;
+    color: #166534 !important;
+    transform: translateY(-2px);
+    box-shadow: 0 0 15px rgba(22, 163, 74, 0.2) !important;
+}
+
+.btn-create-dash,
+.btn-secondary {
+    height: 45px;
+    /* Optionnel : pour forcer une hauteur fixe identique */
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* État désactivé pour bloquer visuellement après le clic */
+.btn-create-dash:disabled {
+    background: rgba(108, 117, 125, 0.08) !important;
+    /* Gris translucide */
+    border: 1px solid rgba(108, 117, 125, 0.25) !important;
+    color: #6c757d !important;
+    cursor: not-allowed !important;
+    transform: none !important;
+    /* On annule l'effet de lévitation */
+    box-shadow: none !important;
+    opacity: 0.6;
+}
+
+/* 1. On cache le spinner par défaut */
+.btn-create-dash .spinner-border {
+    display: none !important;
+}
+
+/* 2. On l'affiche quand le bouton est cliqué (disabled) */
+.btn-create-dash:disabled .spinner-border {
+    display: inline-block !important;
+    animation: spin 1s linear infinite;
+}
+
+/* 3. On peut aussi cacher l'icône de disquette pour laisser la place au spinner */
+.btn-create-dash:disabled .btn-text {
+    opacity: 0.8;
+}
+
+/* Animation de rotation si tu n'utilises pas Bootstrap */
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Style Bouton Pilule Glassmorphism pour les Cards */
+.btn-pill-dash {
+    background: rgba(0, 0, 0, 0.03) !important;
+    backdrop-filter: blur(5px);
+    border: 1px solid rgba(0, 0, 0, 0.1) !important;
+    color: var(--text-muted) !important;
+    border-radius: 30px !important;
+    /* Ton réglage strict */
+    padding: 6px 16px !important;
+    font-size: 0.85rem !important;
+    font-weight: 500 !important;
+    text-transform: none !important;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none !important;
+}
+
+/* Survol : Pas de couleur pleine, juste une lueur de bordure et un léger éclaircissement */
+.btn-pill-dash:hover {
+    background: rgba(0, 0, 0, 0.06) !important;
+    color: var(--text-main) !important;
+    /* La bordure prend la couleur de l'accentuation sans remplir le bouton */
+    border-color: var(--btn-color, rgba(0, 0, 0, 0.3)) !important;
+    box-shadow: 0 0 15px var(--btn-glow, rgba(0, 0, 0, 0.05)) !important;
+    transform: translateY(-2px);
+}
+
+/* Base commune pour les étiquettes du Dashboard */
+.badge-dash-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px !important;
+    border-radius: 30px !important;
+    /* Cohérence avec tes boutons */
+    font-size: 0.75rem !important;
+    font-weight: 600;
+    backdrop-filter: blur(4px);
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
+}
+
+
+
+/* Variante Catégorie (Dynamique) */
+.badge-cat-neon {
+    background: rgba(0, 0, 0, 0.03);
+    /* La bordure et la couleur seront gérées en inline via PHP */
+}
+
+.badge-cat-neon:hover {
+    background: rgba(0, 0, 0, 0.06);
+    filter: brightness(0.95);
+}
+
+/* ===================================================
+   SECTION 9 (Suite) : STATUTS FINANCIERS
+   =================================================== */
+/* 1. Base commune pour tous les badges de statut */
+.badge-solde,
+.badge-en-retard,
+.badge-a-venir {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5em 0.8em !important;
+    font-size: 0.75rem !important;
+    font-weight: 700;
+    border-radius: 6px;
+    height: 28px;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    border: 1px solid transparent;
+}
+
+/* 2. Variantes de couleurs (Adaptées Light Theme, suppression des effets lumineux excessifs) */
+
+/* VERT : Soldé (Fixe) */
+.badge-solde {
+    background-color: rgba(22, 163, 74, 0.1) !important;
+    color: #15803d !important;
+    border-color: rgba(22, 163, 74, 0.3) !important;
+    text-shadow: none;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+/* AMBRE : À venir (Fixe) */
+.badge-a-venir {
+    background-color: rgba(217, 119, 6, 0.1) !important;
+    color: #b45309 !important;
+    border-color: rgba(217, 119, 6, 0.3) !important;
+    text-shadow: none;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+/* ROUGE : En Retard (PULSE) */
+.badge-en-retard {
+    background-color: rgba(220, 38, 38, 0.1) !important;
+    color: #b91c1c !important;
+    border-color: rgba(220, 38, 38, 0.3) !important;
+    text-shadow: none;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+
+    /* On active ton animation ici */
+    animation: pulse-red 2s infinite !important;
+}
+
+
+/* ===================================================
+   SECTION 12 (Suite) : BORDURES DYNAMIQUES
+   =================================================== */
+
+/* Correction Prioritaire : On force l'affichage des bordures sur les cartes de statut */
+.card.bg-glass.border-solde {
+    border: 2px solid #16a34a !important;
+    box-shadow: 0 0 12px rgba(22, 163, 74, 0.15) !important;
+}
+
+.card.bg-glass.border-en-retard {
+    border: 2px solid #dc2626 !important;
+    box-shadow: 0 0 12px rgba(220, 38, 38, 0.15) !important;
+}
+
+.card.bg-glass.border-a-venir {
+    border: 2px solid #d97706 !important;
+    box-shadow: 0 0 12px rgba(217, 119, 6, 0.15) !important;
+}
+
+/* Sécurité structurelle pour les cartes à bordures */
+.card.bg-glass {
+    border-style: solid !important;
+    overflow: visible;
+}
+
+.border-left-danger {
+    border-left: 5px solid #dc2626 !important;
+}
+
+/* ===================================================
+   SECTION 13 : JAUGES & PAGINATION
+   =================================================== */
+
+/* Jauge Circulaire Donut Effect (Adaptée Light Theme) */
+.progress-circle-custom {
+    position: relative;
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    background: conic-gradient(var(--accent-blue) calc(var(--percentage) * 1%), rgba(0, 0, 0, 0.08) 0);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.progress-circle-custom::before {
+    content: "";
+    position: absolute;
+    width: 58px;
+    height: 58px;
+    background: #ffffff;
+    border-radius: 50%;
+}
+
+.progress-circle-custom span {
+    position: relative;
+    z-index: 2;
+    font-size: 0.9rem;
+    font-weight: 800;
+    color: var(--text-main);
+}
+
+/* Pagination Glassmorphism */
+.page-link {
+    background: rgba(0, 0, 0, 0.03) !important;
+    color: var(--text-main) !important;
+    border: 1px solid rgba(0, 0, 0, 0.12) !important;
+}
+
+.page-item.active .page-link {
+    background: var(--accent-blue) !important;
+    color: #ffffff !important;
+}
+
+/* Style personnalisé pour la pagination Glassmorphism */
+.pagination .page-link {
+    backdrop-filter: blur(10px);
+    margin: 0 3px;
+    border-radius: 5px !important;
+    transition: all 0.3s ease;
+}
+
+.pagination .page-link:hover {
+    background: rgba(2, 132, 199, 0.1) !important;
+    color: var(--accent-blue) !important;
+    border-color: var(--accent-blue) !important;
+    box-shadow: 0 0 10px rgba(2, 132, 199, 0.15);
+}
+
+.pagination .page-item.active .page-link {
+    background: var(--accent-blue, #0284c7) !important;
+    border-color: var(--accent-blue, #0284c7) !important;
+    box-shadow: 0 0 12px rgba(2, 132, 199, 0.25);
+}
+
+.pagination .page-item.disabled .page-link {
+    opacity: 0.4;
+    background: rgba(0, 0, 0, 0.03) !important;
+}
+
+/* ===================================================
+   SECTION 14 : BRANDING & SYSTÈMES STATUTS (Adapté Light Theme)
+   =================================================== */
+.brand-text.text-accent-blue {
+    color: var(--accent-blue) !important;
+    letter-spacing: 2px;
+    text-shadow: none;
+}
+
+.version-badge {
+    font-size: 0.65rem !important;
+    padding: 3px 8px !important;
+    background: rgba(0, 0, 0, 0.03) !important;
+    border: 1px solid rgba(0, 0, 0, 0.12) !important;
+    border-radius: 4px;
+    color: var(--text-main);
+}
+
+.text-success {
+    color: #16a34a !important;
+    text-shadow: none;
+}
+
+/* Couleur AMBRE pour les montants "À VENIR" */
+.text-a-venir {
+    color: #b45309 !important;
+    text-shadow: none;
+}
+
+/* Couleur ROUGE + PULSE pour les montants "EN RETARD" */
+.text-retard {
+    color: #dc2626 !important;
+    text-shadow: none;
+    animation: pulse-red 2s infinite !important;
+    display: inline-block;
+}
+
+/* Animation combinée pour l'icône de retard */
+.text-retard .emoji-warning {
+    display: inline-block;
+    /* Indispensable pour l'animation */
+    animation: alarm-vibrate 2s infinite ease-in-out;
+}
+
+@keyframes alarm-vibrate {
+    0% {
+        transform: scale(1) rotate(0deg);
+    }
+
+    25% {
+        transform: scale(1.2) rotate(-10deg);
+    }
+
+    50% {
+        transform: scale(1) rotate(0deg);
+    }
+
+    75% {
+        transform: scale(1.2) rotate(10deg);
+    }
+
+    100% {
+        transform: scale(1) rotate(0deg);
+    }
+}
+
+/* On garde le vert standard pour le "SOLDÉ" */
+.text-solde {
+    color: #16a34a !important;
+    text-shadow: none;
+}
+
+/* Anciennement .text-success */
+.admin-text-success {
+    color: #16a34a !important;
+    text-shadow: none;
+    animation: pulse-green 2s infinite;
+}
+
+@keyframes pulse-green {
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.4;
+    }
+}
+
+
+/* ==========================================================================
+   MODULE : PROGRESS BARS (Adapté Light Theme)
+   Règle : Border-radius 30px, Effet Tube de Verre, Rendu Clair Harmonisé
+   ========================================================================== */
+
+/* 1. Le Rail (Container commun) */
+.progress-custom-dark {
+    background: rgba(0, 0, 0, 0.05) !important;
+    height: 14px !important;
+    border-radius: 30px !important;
+    border: 1px solid rgba(0, 0, 0, 0.1) !important;
+    overflow: visible !important;
+    padding: 2px !important;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+/* 2. La barre - OPTION VERTE (Énergie/Réussite) */
+.progress-bar-neon-green {
+    background: linear-gradient(90deg, #16a34a, #22c55e) !important;
+    border-radius: 30px !important;
+    box-shadow: 0 2px 6px rgba(22, 163, 74, 0.2) !important;
+    position: relative;
+    transition: width 1.5s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* 3. La barre - OPTION BLEUE (Tech/Dashboard) */
+.progress-bar-neon-blue {
+    background: linear-gradient(90deg, #0284c7, #38bdf8) !important;
+    border-radius: 30px !important;
+    box-shadow: 0 2px 6px rgba(2, 132, 199, 0.2) !important;
+    position: relative;
+    transition: width 1.5s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* 4. Base commune pour l'effet de reflet */
+.progress-bar-neon {
+    border-radius: 30px !important;
+    position: relative !important;
+    transition: width 1.5s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* Le reflet brillant (commun aux barres) */
+.progress-bar-neon-green::after,
+.progress-bar-neon-blue::after,
+.progress-bar-neon::after {
+    content: "";
+    position: absolute;
+    top: 2px;
+    left: 4px;
+    right: 4px;
+    height: 3px;
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0.6), transparent);
+    border-radius: 30px;
+}
+
+
+/* ==========================================================================
+   CATALOGUE DES VARIANTES (Adapté Light Theme)
+   ========================================================================== */
+
+/* --- OPTION A : BLEU GALAXY --- */
+.bg-neon-blue {
+    background: linear-gradient(90deg, #0284c7, #38bdf8) !important;
+    box-shadow: 0 2px 6px rgba(2, 132, 199, 0.2) !important;
+    position: relative !important;
+}
+
+.bg-neon-blue::after {
+    content: "";
+    position: absolute;
+    top: 2px;
+    left: 6px;
+    right: 6px;
+    height: 3px;
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0.6), transparent);
+    border-radius: 30px;
+}
+
+.text-accent-blue {
+    color: #0284c7 !important;
+    text-shadow: none;
+}
+
+/* --- OPTION B : VERT ÉNERGIE --- */
+.bg-neon-green {
+    background: linear-gradient(90deg, #16a34a, #22c55e) !important;
+    box-shadow: 0 2px 6px rgba(22, 163, 74, 0.2) !important;
+    position: relative !important;
+}
+
+.bg-neon-green::after {
+    content: "";
+    position: absolute;
+    top: 2px;
+    left: 6px;
+    right: 6px;
+    height: 3px;
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0.6), transparent);
+    border-radius: 30px;
+}
+
+.text-accent-green {
+    color: #16a34a !important;
+    text-shadow: none;
+}
+
+/* --- OPTION C : AMBRE / ORANGE --- */
+.bg-neon-amber {
+    background: linear-gradient(90deg, #d97706, #fbbf24) !important;
+    box-shadow: 0 2px 6px rgba(217, 119, 6, 0.2) !important;
+    position: relative !important;
+}
+
+.bg-neon-amber::after {
+    content: "";
+    position: absolute;
+    top: 2px;
+    left: 6px;
+    right: 6px;
+    height: 3px;
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0.6), transparent);
+    border-radius: 30px;
+}
+
+.text-accent-amber {
+    color: #b45309 !important;
+    text-shadow: none;
+}
+
+/* --- OPTION D : ROUGE DANGER --- */
+.bg-neon-danger {
+    background: linear-gradient(90deg, #dc2626, #ef4444) !important;
+    box-shadow: 0 2px 6px rgba(220, 38, 38, 0.2) !important;
+    position: relative !important;
+}
+
+.bg-neon-danger::after {
+    content: "";
+    position: absolute;
+    top: 2px;
+    left: 6px;
+    right: 6px;
+    height: 3px;
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0.6), transparent);
+    border-radius: 30px;
+}
+
+.text-accent-danger {
+    color: #dc2626 !important;
+    text-shadow: none;
+}
+
+/* --- OPTION E : PURPLE ROYAL --- */
+.bg-neon-purple {
+    background: linear-gradient(90deg, #7c3aed, #a78bfa) !important;
+    box-shadow: 0 2px 6px rgba(124, 58, 237, 0.2) !important;
+    position: relative !important;
+}
+
+.bg-neon-purple::after {
+    content: "";
+    position: absolute;
+    top: 2px;
+    left: 6px;
+    right: 6px;
+    height: 3px;
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0.6), transparent);
+    border-radius: 30px;
+}
+
+.text-accent-purple {
+    color: #7c3aed !important;
+    text-shadow: none;
+}
+
+.back-button {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    background-color: #16a34a;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.back-button .icon {
+    margin-right: 8px;
+}
+
+.back-button:hover {
+    background-color: #15803d;
+}
+
+/* --- Dashboard Banner MBS (Adapté Light Theme) --- */
+
+.dashboard-header {
+    padding-top: 1.5rem;
+    padding-bottom: 1.5rem;
+}
+
+.glass-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.25rem 2rem;
+    background: var(--bg-card);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    border-radius: 1rem;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
+}
+
+.user-greeting {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.avatar-icon {
+    font-size: 1.8rem;
+    background: var(--accent-blue);
+    color: #ffffff;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+}
+
+.label-dashboard {
+    display: block;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--text-muted);
+    font-weight: 700;
+}
+
+.welcome-text {
+    margin: 0;
+    font-size: 1.25rem;
+    color: var(--text-main);
+}
+
+.username-highlight {
+    color: var(--accent-blue);
+    font-weight: 800;
+}
+
+.date-now {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.time-now {
+    font-size: 1.2rem;
+    color: var(--text-main);
+}
+
+/* ==========================================================================
+   SECTION 16 : SÉPARATEURS & OPTIMISATION MOBILE (Adapté Light Theme)
+   ========================================================================== */
+
+/* --- SÉPARATEURS --- */
+.sep-grande {
+    width: 1px;
+    height: 35px;
+    background: rgba(0, 0, 0, 0.2);
+    margin: 0 15px;
+    display: inline-block;
+}
+
+.sep-petite {
+    width: 1px;
+    height: 18px;
+    background: rgba(0, 0, 0, 0.1);
+    margin: 0 8px;
+    display: inline-block;
+}
+
+/* Nettoyage final du bloc de droite */
+.time-status {
+    border-left: none !important;
+    padding-left: 0 !important;
+    margin-left: 10px;
+}
+
+/* ****************************************************** */
+/* ** OPTIMISATION MOBILE (Global & Dashboard)       ** */
+/* ****************************************************** */
+
+@media (max-width: 768px) {
+
+    /* 1. ESPACEMENTS GÉNÉRAUX */
+    .container {
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+
+    .glass-card-nav,
+    .bg-glass {
+        padding: 15px !important;
+        margin-bottom: 15px !important;
+    }
+
+    /* 2. NAVIGATION & FILTRES */
+    .nav-dashboard-container .d-flex,
+    form.d-flex.gap-2 {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 12px !important;
+    }
+
+    /* 3. STRUCTURE DES ACTIONS DANS LES CARTES */
+    .card-achat-hover .mt-4.flex-column.w-100 {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+        width: 100% !important;
+        gap: 12px !important;
+    }
+
+    .card.bg-glass.p-2 {
+        padding: 10px !important;
+    }
+
+    .card.bg-glass .fs-5 {
+        font-size: 1.1rem !important;
+    }
+
+    /* 4. UNIFORMISATION DES BOUTONS */
+    .btn-pill-dash,
+    .btn-action-dash,
+    .btn-create-dash,
+    .nav-dashboard-container .btn {
+        width: 100% !important;
+        max-width: none !important;
+        flex: 1 1 100% !important;
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        min-height: 48px;
+        margin: 0 !important;
+        text-align: center;
+    }
+
+    /* Harmonisation des actions d'en-tête */
+    .header-actions {
+        width: 100% !important;
+    }
+
+    .header-actions .btn-payer-neon,
+    .header-actions .btn-secondary {
+        width: 100% !important;
+        min-height: 50px !important;
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        font-size: 0.95rem !important;
+        padding: 10px !important;
+        white-space: normal !important;
+        text-align: center;
+    }
+
+    .header-actions .emoji {
+        margin-right: 8px;
+    }
+
+    /* Harmonisation des formulaires de modification */
+    .btn-create-dash,
+    .btn-secondary {
+        min-height: 48px !important;
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        width: 100% !important;
+        margin: 0 !important;
+    }
+
+    .d-flex.flex-column.gap-3 {
+        width: 100% !important;
+    }
+
+    /* 5. LE CAS DU FORMULAIRE DE SUPPRESSION */
+    .card-achat-hover form {
+        display: block !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+
+
+
+   /* ===================================================
+   SECTION 17 (Suite) : CORRECTIF DES ACCOLADES & RESPONSIVE
+   =================================================== */
+
+/* Ajustement de la barre d'outils Historique */
+.row.g-3.mb-4 .col-12 {
+    margin-bottom: 5px;
+}
+
+.row.g-3.mb-4 .btn,
+.row.g-3.mb-4 .btn-create-dash,
+.row.g-3.mb-4 .badge-compteur {
+    width: 100% !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    min-height: 45px;
+}
+
+/* 8. ÉCRANS TRÈS ÉTROITS (Media Query imbriquée correctement fermée) */
+@media (max-width: 380px) {
+    .progress-circle-custom {
+        width: 70px;
+        height: 70px;
+        --size: 70px;
+    }
+}
+
+/* 9. BANNIÈRE DE TITRE (Top Bar) */
+.glass-banner {
+    flex-direction: column !important;
+    text-align: center !important;
+    gap: 15px !important;
+    padding: 20px 15px !important;
+}
+
+.sep-grande,
+.sep-petite {
+    display: none !important;
+}
+
+.glass-banner .avatar-icon {
+    width: 45px;
+    height: 45px;
+    margin: 0 auto 10px auto !important;
+}
+
+.glass-banner h1.glass-header {
+    font-size: 1.25rem !important;
+    line-height: 1.3;
+    margin: 10px 0 !important;
+}
+
+.time-status {
+    width: 100% !important;
+    text-align: center !important;
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+    padding-top: 15px !important;
+}
+
+.time-now {
+    font-size: 1.1rem !important;
+    margin-top: 5px;
+}
+
+/* FIN DU BLOC MOBILE GLOBAL (Ferme correctement @media (max-width: 768px)) */
+}
+
+
+/* =====================================================
+   INFO BULLE KPI PERSONNALISÉE (Adapté Light Theme)
+   Affichage uniquement au survol
+===================================================== */
+
+.info-tooltip {
+    position: relative;
+    cursor: help;
+    display: inline-block;
+    z-index: 10000;
+}
+
+/* Texte caché par défaut */
+.info-tooltip-text {
+    display: none;
+    position: absolute;
+    z-index: 10001;
+    bottom: 130%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 350px;
+    background-color: var(--bg-card);
+    color: var(--text-main);
+    font-size: 14px;
+    font-weight: 500;
+    padding: 14px 18px;
+    border-radius: 8px;
+    line-height: 1.5;
+    text-align: left;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+/* Petite flèche */
+.info-tooltip-text::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 6px;
+    border-style: solid;
+    border-color: var(--bg-card) transparent transparent transparent;
+}
+
+/* Affichage au survol */
+.info-tooltip:hover .info-tooltip-text {
+    display: block;
+}
+
+.badge-compteur {
+    overflow: visible !important;
+}
+
+.col-md-4:has(.badge-compteur) {
+    overflow: visible !important;
+}
+
+/* =====================================================
+   MODULE : NAVIGATION STICKY FLOTTANTE (VERTICALE) - Adapté Light Theme
+   ===================================================== */
+
+.sticky-dashboard-nav {
+    position: fixed;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 1040;
+    transition: transform 0.3s ease-in-out;
+    will-change: transform;
+}
+
+/* Alignement Droite */
+.sticky-nav-right {
+    right: 15px;
+}
+
+/* Alignement Gauche */
+.sticky-nav-left {
+    left: 15px;
+}
+
+/* Conteneur principal vertical style clair / glassmorphism */
+.sticky-nav-container {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    background-color: var(--bg-card);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    padding: 10px 8px;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+/* Éléments / Boutons */
+.sticky-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border-radius: 10px;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 0.82rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    background: transparent;
+}
+
+.sticky-nav-item:hover {
+    color: var(--text-main);
+    background-color: rgba(0, 0, 0, 0.05);
+    transform: translateX(3px);
+}
+
+/* Bouton Actif */
+.sticky-nav-item.active {
+    color: var(--text-main);
+    background-color: rgba(2, 132, 199, 0.12);
+    border: 1px solid rgba(2, 132, 199, 0.3);
+}
+
+/* Badges Texte */
+.sticky-badge {
+    white-space: nowrap;
+}
+
+.sticky-icon {
+    font-size: 1.1rem;
+    line-height: 1;
+}
+
+/* =====================================================
+   ADAPTATION MOBILE : NAVIGATION STICKY
+   ===================================================== */
+@media (max-width: 768px) {
+
+    .sticky-badge {
+        display: none;
+    }
+
+    .sticky-nav-container {
+        padding: 6px 4px;
+        border-radius: 30px;
+    }
+
+    .sticky-nav-item {
+        padding: 8px;
+        justify-content: center;
+    }
+}
+
+/* =====================================================
+   MODULE : NAVBAR UTILISATEUR STICKY (Adapté Light Theme)
+   ===================================================== */
+
+.navbar-user-sticky {
+    position: fixed;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 1030;
+    transition: transform 0.3s ease-in-out;
+    will-change: transform;
+}
+
+/* Position inverse du sticky principal */
+.navbar-user-left {
+    left: 10px;
+}
+
+.navbar-user-right {
+    right: 10px;
+}
+
+.navbar-icon {
+    font-size: 1.1rem;
+    line-height: 1;
+}
+
+.navbar-user-item.active {
+    color: var(--text-main);
+    background-color: rgba(2, 132, 199, 0.12);
+    border: 1px solid rgba(2, 132, 199, 0.3);
+}
+
+/* =====================================================
+   MODULE : NAVBAR UTILISATEUR STICKY - CONTAINER & ITEMS (Adapté Light Theme)
+   ===================================================== */
+
+.navbar-user-container {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    background-color: var(--bg-card);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    padding: 10px 8px;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.navbar-user-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 8px;
+    border-radius: 10px;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 0.82rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    background: transparent;
+    border: none;
+}
+
+.navbar-user-item:hover {
+    color: var(--text-main);
+    background-color: rgba(0, 0, 0, 0.05);
+    transform: translateX(3px);
+}
+
+.navbar-user-danger:hover {
+    color: #dc2626;
+}
+
+/* =====================================================
+   MASQUAGE MOBILE UNIQUEMENT
+   ===================================================== */
+
+@media (max-width: 768px) {
+
+    /* Sortie côté gauche */
+    .hidden.navbar-user-left,
+    .hidden.sticky-nav-left {
+        transform: translateX(-150%) translateY(-50%);
+    }
+
+    /* Sortie côté droit */
+    .hidden.navbar-user-right,
+    .hidden.sticky-nav-right {
+        transform: translateX(150%) translateY(-50%);
+    }
+
+    .navbar-badge {
+        display: none;
+    }
+}
+
+/* =====================================================
+   MODULE : GRAPHIQUES (Chart.js) - CONTENEURS (Adapté Light Theme)
+   ===================================================== */
+.chart-container-g1 {
+    height: 700px;
+}
+
+.chart-container-g3 {
+    height: calc(100% - 45px);
+    position: relative;
+}
+
+.compteur-kpi {
+    font-size: 1.5rem !important;
+    line-height: 2.5;
+    padding: 8px 18px;
+}

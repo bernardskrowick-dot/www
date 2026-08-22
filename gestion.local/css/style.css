@@ -1,0 +1,571 @@
+/* Version: v1.12.0 (Rev #22) - 2026-08-03 */
+/* ===================================================== */
+/* 1. VARIABLES & RESET (THÈME CLAIR)                    */
+/* ===================================================== */
+:root {
+    /* Couleurs de fond et structure */
+    --bg-dark: #0f172a;
+    --bg-card: rgba(30, 41, 59, 0.7);
+    --glass-border: rgba(213, 18, 18, 0.1);
+
+    /* Palette d'accents (Néons & Statuts) */
+    --accent-blue: #38bdf8;
+    --accent-purple: #818cf8;
+    --accent-cyan: #00d4ff;
+    --accent-amber: #fbbf24;
+    --accent-red: #ef4444;
+    --accent-green: #22c55e;
+
+    /* Typographie */
+    --text-main: #292a2a;
+    --text-muted: #696c6f;
+}
+
+body {
+    font-family: 'Segoe UI', Roboto, Arial, sans-serif;
+    background-color: #d7d8d9;
+    color: #0f172a;
+    margin: 0;
+    padding: 0;
+}
+
+
+/* ===================================================== */
+/* 2. LAYOUT GÉNÉRAL & STRUCTURE STICKY                  */
+/* ===================================================== */
+.container {
+    max-width: 1200px;
+}
+
+/* On force le document à prendre toute la hauteur */
+html,
+body {
+    height: 100%;
+    margin: 0;
+}
+
+/* Le body devient un conteneur flexible vertical */
+body {
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+/* IMPORTANT : Le container de login (d-flex) doit pouvoir 
+   pousser le footer. On lui donne la flexibilité maximale.
+*/
+.container.d-flex {
+    flex: 1 0 auto;
+    /* Prend tout l'espace restant entre le header et le footer */
+    width: 100%;
+    max-width: 100% !important;
+    /* Pour que le centrage horizontal de Bootstrap fonctionne */
+}
+
+/* On s'assure que la carte reste centrée à l'intérieur 
+   du container sans écraser le footer.
+*/
+.card.bg-glass {
+    margin: auto;
+    /* Centrage parfait à l'intérieur du flex-grow */
+}
+
+
+/* ===================================================== */
+/* 3. FORMULAIRES & SPECIFIQUE LOGIN                     */
+/* ===================================================== */
+
+/* Corrections spécifiques pour LOGIN.PHP (Écrase les classes sombres par du clair) */
+.card.bg-glass {
+    background-color: var(--card-bg) !important;
+    backdrop-filter: none !important;
+    border: 1px solid rgba(0, 0, 0, 0.1) !important;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05) !important;
+}
+
+/* Force les titres blancs en sombre */
+.main-title.text-white,
+h1.text-white {
+    color: var(--text-main) !important;
+}
+
+/* Force les labels blancs-50 en gris foncé */
+.form-label.text-white-50 {
+    color: #495057 !important;
+    font-weight: 600;
+}
+
+/* Transformation des inputs "bg-dark" en "bg-light" */
+.form-control.bg-dark {
+    background-color: #ffffff !important;
+    color: var(--text-main) !important;
+    border: 1px solid var(--border-color) !important;
+}
+
+.form-control.bg-dark::placeholder {
+    color: #adb5bd !important;
+}
+
+/* Correction des icônes (input-group-text) */
+.input-group-text.bg-dark {
+    background-color: #f8f9fa !important;
+    color: var(--text-main) !important;
+    border: 1px solid var(--border-color) !important;
+}
+
+label,
+.form-label {
+    color: var(--accent-blue) !important;
+    font-size: 0.9rem !important;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 8px;
+    font-weight: 700 !important;
+}
+
+
+/* ===================================================== */
+/* 4. CARTES & GLASSMORPHISM                             */
+/* ===================================================== */
+/* 6.2 Cartes Ardoise & Glassmorphism (FUSIONNÉ) */
+.glass-card-nav,
+.bg-glass {
+    background: var(--bg-card) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border) !important;
+    border-radius: 20px !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4) !important;
+    color: var(--text-main) !important;
+    margin-top: 30px;
+    padding: 20px 30px !important;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+        box-shadow 0.3s ease,
+        border 0.3s ease;
+}
+
+.glass-card-nav:hover,
+.bg-glass:hover {
+    border: 1px solid rgba(0, 212, 255, 0.4) !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8), 0 0 15px rgba(0, 212, 255, 0.2);
+    transform: translateY(-3px);
+}
+
+.card.bg-glass {
+    border: 1px solid !important;
+}
+
+
+/* ===================================================== */
+/* 5. SYSTÈME DE BOUTONS                                 */
+/* ===================================================== */
+
+/* 5.1 Boutons de base */
+.btn-primary {
+    background-color: var(--primary-color);
+    border: none;
+    padding: 10px 20px;
+    font-weight: 600;
+    transition: transform 0.2s, background-color 0.2s;
+}
+
+.btn-primary:hover {
+    background-color: #0b5ed7;
+    transform: translateY(-1px);
+}
+
+.btn-primary-2 {
+    background-color: var(--primary-color);
+    border: none;
+    padding: 10px 20px;
+    font-weight: 600;
+    transition: transform 0.2s, background-color 0.2s;
+}
+
+.btn-primary-2:hover {
+    background-color: #d7820b99;
+    transform: translateY(-1px);
+}
+
+/* 5.1 Boutons standards Bootstrap */
+.btn-primary {
+    background: linear-gradient(135deg, var(--accent-blue), #0284c7) !important;
+    border: none !important;
+    font-weight: 600 !important;
+    padding: 12px 30px !important;
+    box-shadow: 0 4px 15px rgba(56, 189, 248, 0.3) !important;
+    color: #ffffff !important;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(56, 189, 248, 0.5) !important;
+}
+
+/* 5.2 Boutons d'Action Dashboard */
+.btn-action-dash {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 180px;
+    text-transform: uppercase;
+    font-weight: 700;
+    font-size: 0.75rem;
+    letter-spacing: 1px;
+    padding: 10px 20px;
+    border-radius: 12px !important;
+    transition: all 0.3s ease;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.7) !important;
+    text-decoration: none;
+    padding: 8px 12px;
+    /* Padding plus compact */
+    flex: 1 1 auto;
+    /* Permet de grandir et rétrécir selon l'espace */
+    min-width: 120px;
+    /* Largeur minimum plus raisonnable */
+    max-width: 200px;
+    /* Évite qu'ils ne deviennent trop géants */
+}
+
+.btn-action-dash:hover {
+    transform: translateY(-3px);
+    color: #fff !important;
+    filter: brightness(1.2);
+    letter-spacing: 1.5px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+}
+
+/* Variantes Hover Action Dash */
+.btn-dash-green:hover {
+    border-color: #2ecc71 !important;
+    color: #2ecc71 !important;
+    box-shadow: 0 0 10px rgba(46, 204, 113, 0.3);
+}
+
+.btn-dash-silver:hover {
+    border-color: #bdc3c7 !important;
+    color: #bdc3c7 !important;
+    box-shadow: 0 0 10px rgba(189, 195, 199, 0.3);
+}
+
+.btn-dash-blue:hover {
+    border-color: #3498db !important;
+    color: #3498db !important;
+    box-shadow: 0 0 10px rgba(52, 152, 219, 0.3);
+}
+
+.btn-dash-orange:hover {
+    border-color: #e67e22 !important;
+    color: #e67e22 !important;
+    box-shadow: 0 0 10px rgba(230, 126, 34, 0.3);
+}
+
+.btn-dash-indigo:hover {
+    border-color: #6610f2 !important;
+    color: #6610f2 !important;
+    box-shadow: 0 0 10px rgba(102, 16, 242, 0.3);
+}
+
+/* 5.3 Boutons Néons */
+.btn-neon-cyan,
+.btn-neon-purple,
+.btn-outline-accent-blue {
+    text-transform: uppercase;
+    font-weight: 600;
+    font-size: 0.85rem;
+    padding: 8px 15px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    background: rgba(255, 255, 255, 0.05);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-neon-cyan {
+    color: #00d4ff !important;
+    border: 1px solid #00d4ff !important;
+    box-shadow: 0 0 5px rgba(0, 212, 255, 0.2);
+}
+
+.btn-neon-cyan:hover {
+    background: #00d4ff !important;
+    color: #000 !important;
+    box-shadow: 0 0 15px rgba(0, 212, 255, 0.6);
+}
+
+.btn-neon-purple {
+    color: #bc13fe !important;
+    border: 1px solid #bc13fe !important;
+    box-shadow: 0 0 5px rgba(188, 19, 254, 0.2);
+}
+
+.btn-neon-purple:hover {
+    background: #bc13fe !important;
+    color: #fff !important;
+    box-shadow: 0 0 15px rgba(188, 19, 254, 0.6);
+}
+
+/* 5.4 Boutons Statuts Rapides */
+.btn-payer-neon {
+    padding: 8px 20px;
+    color: #ffffff !important;
+    background: rgba(0, 242, 255, 0.05);
+    border: 1px solid #00f2ff !important;
+    border-radius: 8px;
+    font-weight: 600;
+    box-shadow: 0 0 5px rgba(0, 242, 255, 0.2);
+    transition: all 0.3s ease-in-out;
+}
+
+.btn-payer-neon:hover {
+    background: rgba(0, 242, 255, 0.15);
+    box-shadow: 0 0 10px rgba(0, 242, 255, 0.5), 0 0 20px rgba(0, 242, 255, 0.3);
+}
+
+.btn-modifier-neon {
+    padding: 6px 15px;
+    background: rgba(251, 191, 36, 0.05);
+    border: 1px solid #fbbf24 !important;
+    border-radius: 8px;
+    color: #fbbf24 !important;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    transition: all 0.3s ease;
+}
+
+.btn-modifier-neon:hover {
+    background: #fbbf24 !important;
+    color: #0f172a !important;
+    box-shadow: 0 0 20px rgba(251, 191, 36, 0.5);
+}
+
+
+/* ===================================================== */
+/* 6. BADGES, ALERTES & COMPOSANTS                       */
+/* ===================================================== */
+.alert {
+    border-radius: 8px;
+    font-size: 0.95rem;
+}
+
+.text-muted {
+    color: var(--text-muted) !important;
+}
+
+/* Message de copyright en bas */
+small.text-muted {
+    display: block;
+    margin-top: 10px;
+}
+
+/* 
+.version-badge {
+    font-size: 0.65rem !important;
+    padding: 3px 8px !important;
+    background: rgba(0, 0, 0, 0) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 4px;
+} */
+
+/* 9.1 Badges Néon Dynamiques */
+.badge-neon {
+    background: rgba(230, 126, 34, 0.2);
+    color: #e67e22;
+    border: 1px solid #e67e22;
+    font-size: 0.65rem;
+    font-weight: 900;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 4px 10px;
+    /* plus respirant */
+    border-radius: 50px;
+    line-height: 1;
+    box-sizing: border-box;
+
+    box-shadow: 0 0 8px rgba(230, 126, 34, 0.4);
+    transition: all 0.3s ease;
+}
+
+/* Classe personnalisée pour le bouton de fermeture des alertes Flash */
+.btn-flash-close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: rgba(220, 53, 69, 0.2) !important;
+    /* Rouge Bootstrap atténué */
+    border: 2px solid #ff4d4d !important;
+    /* Rouge vif pour le contour */
+    color: #ffffff !important;
+    /* Texte blanc */
+    font-weight: bold;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    text-decoration: none;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+/* Effet au survol pour plus d'interactivité */
+.btn-flash-close:hover {
+    background-color: rgba(220, 53, 69, 0.5) !important;
+    border-color: #ffffff !important;
+    transform: scale(1.05);
+}
+
+
+/* ===================================================== */
+/* 7. STYLES SPÉCIFIQUES ET LOGIQUE DU FOOTER            */
+/* ===================================================== */
+
+/* Badge de version */
+.version-badge {
+    background-color: rgba(13, 110, 253, 0.15);
+    color: #0d6efd;
+    font-size: 0.75rem;
+    padding: 0.25em 0.5em;
+}
+
+/* Mise en valeur du nom de marque */
+.brand-text {
+    letter-spacing: 0.5px;
+    color: #212529;
+}
+
+/* ===================================================
+   SECTION 12 : FOOTER (VERSION CENTRÉE & PURGÉE)
+   =================================================== */
+footer.footer {
+    flex-shrink: 0;
+    width: 90%;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    background: var(--bg-card) !important;
+    backdrop-filter: blur(15px) !important;
+    -webkit-backdrop-filter: blur(15px);
+    color: #4f4444 !important;
+    border-radius: 30px 30px 0 0 !important;
+    border: 1px solid var(--glass-border) !important;
+    border-bottom: none !important;
+    margin-top: 100px !important;
+    padding: 3rem 0 !important;
+    position: relative;
+}
+
+footer.footer .text-muted {
+    color: rgb(252, 252, 252) !important;
+}
+
+/* ===================================================
+   SURCHARGE PRIORITAIRE DES BOUTONS DU FOOTER
+   (Doit rester en toute fin de fichier)
+   =================================================== */
+
+/* Effet cadre de bouton sur les liens du footer */
+footer.footer a.footer-btn,
+footer.footer .footer-btn {
+    display: inline-block !important;
+    padding: 0.35rem 0.85rem !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    border-radius: 6px !important;
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    color: #ffffff !important;
+    /* Force la visibilité sur le fond sombre du footer */
+    text-decoration: none !important;
+    font-weight: 500 !important;
+    transition: all 0.2s ease-in-out !important;
+}
+
+/* Effet au survol (hover) */
+footer.footer a.footer-btn:hover,
+footer.footer .footer-btn:hover {
+    background-color: rgba(255, 255, 255, 0.25) !important;
+    border-color: rgba(255, 255, 255, 0.5) !important;
+    color: #ffffff !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Cadre pour la section horloge / statut */
+footer.footer .footer-status {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 0.4rem !important;
+    padding: 0.35rem 0.85rem !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    border-radius: 6px !important;
+    background-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+/* Style capsule pour la marque MBS + Version */
+footer.footer .footer-brand-pill {
+    display: inline-flex !important;
+    align-items: center !important;
+    padding: 0.25rem 0.6rem !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    border-radius: 6px !important;
+    background-color: rgba(255, 255, 255, 0.05) !important;
+    transition: all 0.2s ease-in-out !important;
+}
+
+footer.footer .footer-brand-pill:hover {
+    background-color: rgba(255, 255, 255, 0.15) !important;
+    border-color: rgba(255, 255, 255, 0.3) !important;
+    transform: translateY(-1px) !important;
+}
+
+footer.footer .brand-text {
+    color: #ffffff !important;
+    letter-spacing: 0.5px;
+}
+
+
+/* ===================================================== */
+/* 8. MEDIA QUERIES (RESPONSIVE)                         */
+/* ===================================================== */
+@media (max-width: 768px) {
+    footer.footer {
+        margin-top: 50px !important;
+        padding: 2rem 1rem !important;
+        text-align: center;
+    }
+
+    footer.footer .d-flex {
+        gap: 15px;
+        flex-direction: column;
+    }
+
+    .btn-action-dash {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+}
+.footer-logo {
+    height: 28px;
+    width: auto;
+    object-fit: contain;
+    vertical-align: middle;
+}
+.avatar-icon {
+    width: 100px;
+    height: 100px;
+}
+
+.header-logo {
+    width: 100px;
+    height: auto;
+    max-width: 100%;
+}

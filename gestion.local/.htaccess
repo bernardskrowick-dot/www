@@ -1,0 +1,162 @@
+# ==============================================================================
+# FICHIER .htaccess - SÉCURITÉ & PROTECTION DU SITE
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# 1. Empêcher le listing des dossiers (Directory Listing)
+# ------------------------------------------------------------------------------
+Options -Indexes
+
+
+# ------------------------------------------------------------------------------
+# 2. Protection contre le Hotlinking - OPTIONNEL
+# ------------------------------------------------------------------------------
+# Décommenter uniquement si tu souhaites empêcher d'autres sites
+# d'afficher directement tes images/assets.
+#
+# <IfModule mod_rewrite.c>
+#     RewriteEngine On
+#     RewriteCond %{HTTP_REFERER} !^$
+#     RewriteCond %{HTTP_REFERER} !^https://(www\.)mysterb.ddns\.net [NC]
+#     RewriteRule \.(jpg|jpeg|png|gif|webp)$ - [F,L,NC]
+# </IfModule>
+
+
+# ------------------------------------------------------------------------------
+# 3. Protection des fichiers et répertoires sensibles
+# ------------------------------------------------------------------------------
+<IfModule mod_rewrite.c>
+
+    RewriteEngine On
+
+    # --------------------------------------------------------------------------
+    # Dossier includes/
+    # --------------------------------------------------------------------------
+    # Empêche tout accès HTTP direct au dossier includes/
+    RewriteRule ^includes(?:/|$) - [F,L,NC]
+
+
+    # --------------------------------------------------------------------------
+    # Dépôt Git
+    # --------------------------------------------------------------------------
+    # Empêche l'accès à .git et à son contenu
+    RewriteRule ^\.git(?:/|$) - [F,L,NC]
+
+
+    # --------------------------------------------------------------------------
+    # WordPress
+    # --------------------------------------------------------------------------
+    # À conserver si ce site n'utilise PAS WordPress.
+    # Ces chemins sont fréquemment testés par les scanners Internet.
+    RewriteRule ^wp-admin(?:/|$) - [F,L,NC]
+    RewriteRule ^wp-login\.php$ - [F,L,NC]
+    RewriteRule ^wp-json(?:/|$) - [F,L,NC]
+    RewriteRule ^xmlrpc\.php$ - [F,L,NC]
+
+
+    # --------------------------------------------------------------------------
+    # phpMyAdmin
+    # --------------------------------------------------------------------------
+    # À conserver si phpMyAdmin n'est PAS installé sous ce VirtualHost.
+    RewriteRule ^phpmyadmin(?:/|$) - [F,L,NC]
+
+
+    # --------------------------------------------------------------------------
+    # Fichiers de sauvegarde / temporaires
+    # --------------------------------------------------------------------------
+    # Bloque les extensions couramment laissées accidentellement accessibles.
+    RewriteRule \.(?:bak|backup|old|orig|save|swp|tmp)$ - [F,L,NC]
+
+</IfModule>
+
+
+# ------------------------------------------------------------------------------
+# 4. Blocage des User-Agents indésirables
+# ------------------------------------------------------------------------------
+<IfModule mod_setenvif.c>
+
+    # --------------------------------------------------------------------------
+    # Crawlers / robots / outils de scraping
+    # --------------------------------------------------------------------------
+
+    SetEnvIfNoCase User-Agent "Baiduspider" bad_bot
+    SetEnvIfNoCase User-Agent "AhrefsBot" bad_bot
+    SetEnvIfNoCase User-Agent "SemrushBot" bad_bot
+    SetEnvIfNoCase User-Agent "Dotbot" bad_bot
+    SetEnvIfNoCase User-Agent "MJ12bot" bad_bot
+    SetEnvIfNoCase User-Agent "BLEXBot" bad_bot
+    SetEnvIfNoCase User-Agent "SeekportBot" bad_bot
+    SetEnvIfNoCase User-Agent "DataForSeoBot" bad_bot
+
+    # --------------------------------------------------------------------------
+    # Outils HTTP / scraping génériques
+    # --------------------------------------------------------------------------
+
+    SetEnvIfNoCase User-Agent "Scrapy" bad_bot
+    SetEnvIfNoCase User-Agent "libwww-perl" bad_bot
+    SetEnvIfNoCase User-Agent "python-requests" bad_bot
+    SetEnvIfNoCase User-Agent "Go-http-client" bad_bot
+
+    # --------------------------------------------------------------------------
+    # Scanners de sécurité / reconnaissance
+    # --------------------------------------------------------------------------
+
+    SetEnvIfNoCase User-Agent "CensysInspect" bad_bot
+    SetEnvIfNoCase User-Agent "GitFinder" bad_bot
+    SetEnvIfNoCase User-Agent "sqlmap" bad_bot
+    SetEnvIfNoCase User-Agent "Nikto" bad_bot
+    SetEnvIfNoCase User-Agent "masscan" bad_bot
+    SetEnvIfNoCase User-Agent "zgrab" bad_bot
+
+    # --------------------------------------------------------------------------
+    # Blocage général des bots / crawlers / spiders / robots / scanners
+    # --------------------------------------------------------------------------
+
+    SetEnvIfNoCase User-Agent "bot" bad_bot
+    SetEnvIfNoCase User-Agent "crawler" bad_bot
+    SetEnvIfNoCase User-Agent "spider" bad_bot
+    SetEnvIfNoCase User-Agent "robot" bad_bot
+    SetEnvIfNoCase User-Agent "scanner" bad_bot
+
+    # --------------------------------------------------------------------------
+    # Moteurs de recherche
+    # --------------------------------------------------------------------------
+
+    SetEnvIfNoCase User-Agent "Googlebot" bad_bot
+    SetEnvIfNoCase User-Agent "bingbot" bad_bot
+    SetEnvIfNoCase User-Agent "BingPreview" bad_bot
+    SetEnvIfNoCase User-Agent "Slurp" bad_bot
+    SetEnvIfNoCase User-Agent "DuckDuckBot" bad_bot
+    SetEnvIfNoCase User-Agent "YandexBot" bad_bot
+    SetEnvIfNoCase User-Agent "Baiduspider" bad_bot
+    SetEnvIfNoCase User-Agent "Applebot" bad_bot
+    SetEnvIfNoCase User-Agent "PetalBot" bad_bot
+    SetEnvIfNoCase User-Agent "Qwantify" bad_bot
+
+</IfModule>
+
+
+# ------------------------------------------------------------------------------
+# 5. Refus des User-Agents identifiés
+# ------------------------------------------------------------------------------
+<IfModule mod_authz_core.c>
+
+    <RequireAll>
+        Require all granted
+        Require not env bad_bot
+    </RequireAll>
+
+</IfModule>
+
+
+# ------------------------------------------------------------------------------
+# 6. Protection globale des fichiers sensibles
+# ------------------------------------------------------------------------------
+<FilesMatch "(^\.|\.env|\.sql|\.log|\.ini|\.sh|\.bak|\.config)$">
+    Require all denied
+</FilesMatch>
+
+
+# ==============================================================================
+# FIN DU FICHIER .htaccess
+# ==============================================================================

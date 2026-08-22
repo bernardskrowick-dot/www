@@ -1,0 +1,43 @@
+🧠 MBS Gestions — suivi du contrôle
+✅ Points terminés
+Transaction SQL du scan → ✅
+PDO::ERRMODE_EXCEPTION → ✅
+FETCH_GROUP | FETCH_UNIQUE → ✅ corrigé en FETCH_UNIQUE | FETCH_ASSOC
+Distinction scan manuel / silencieux → ✅
+historique_fichiers.type_scan
+executerScan(..., $typeScan)
+manuel → manuel
+silencieux → silencieux
+⏳ À vérifier
+Premier scan silencieux après 12 h → ⏳
+Vérifier que historique_fichiers.type_scan = 'silencieux'.
+❌ Points restant à contrôler
+Gestion de la suppression définitive → à revoir
+Calcul du taux de changement / versionnement → à revoir
+Injection des headers PHP/CSS/JS → à revoir proprement
+Détection des modifications basée uniquement sur filemtime() → à revoir
+Gestion des erreurs pendant le scan → à revoir
+Sécurité de scanFolder() / chemins physiques → à contrôler
+Transaction + rollback complet du scan → ✅ déjà traité
+Cohérence num_revision / injection du header → à contrôler
+Scan silencieux : mécanisme de limite 12 h → à contrôler
+Historique AJAX → à contrôler
+Export CSV → à contrôler
+Pagination historique → à contrôler
+Cohérence des statuts créé / modifié / existant / supprimé → à contrôler
+Synchronisation avec sync_api / sync_cron → à contrôler après ajout de type_scan
+Gestion des dossiers vs fichiers dans la BDD → à contrôler
+🎯 Et surtout
+
+On ne corrige pas les 15 points d'un coup.
+
+On fera :
+
+1 point → correction → test → validation → point suivant.
+
+
+Vérification scan silencieux : 
+SELECT date_action, chemin, type_scan
+FROM historique_fichiers
+ORDER BY id DESC
+LIMIT 20;
