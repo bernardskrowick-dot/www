@@ -145,13 +145,17 @@ try {
   $pdo->beginTransaction();
 
   // 1. Appliquer les suppressions distantes
-  foreach ($tables as $table) {
+  // CORRECTION : On inverse l'ordre (du bas vers le haut) pour supprimer d'abord les enfants 
+  // (echeances, versements) avant les parents (achats, ressources) et éviter l'erreur de contrainte.
+  $tablesForDeletions = array_reverse($tables);
+  foreach ($tablesForDeletions as $table) {
     $idsToDelete = $remoteDeletions[$table] ?? [];
     $pk = $tablesConfig[$table]['pk'];
     syncTableDeletions($pdo, $table, $idsToDelete, $pk);
   }
 
   // 2. Appliquer les insertions / mises à jour (Upsert)
+  // Ordre normal (du haut vers le bas) : les parents (achats) sont insérés avant les enfants (echeances)
   foreach ($tables as $table) {
     $items = $remotePayload[$table] ?? [];
     $pk = $tablesConfig[$table]['pk'];
