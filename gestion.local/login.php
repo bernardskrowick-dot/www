@@ -12,7 +12,7 @@ require_once __DIR__ . '/init.php';
 
 // On définit le titre de la page pour le header
 $titrePage = 'Connexion';
-
+date_default_timezone_set('Europe/Paris');
 $error = '';
 
 // ===================================

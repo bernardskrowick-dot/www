@@ -79,7 +79,7 @@ $found = false;
 ----------------------------- */
 foreach ($paths as $path) {
     if (file_exists($path)) {
-        include $path;
+        require_once $path;
         $found = true;
         break;
     }
