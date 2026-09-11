@@ -406,10 +406,32 @@ if (isset($pdo, $_SESSION['user_id'])) {
   $syntheseAchatsHtml = getDashboardTotauxAchats($pdo, $currentUserId);
   $echeancesRestantesMois = (float) ($syntheseAchatsHtml['total_echeances'] ?? 0.00) - (float) ($syntheseAchatsHtml['total_paye'] ?? 0.00);
 
-  $prochainRevenuHtml = getDashboardProchainRevenu($pdo, $currentUserId, $currentDateJour);
-  if (!empty($prochainRevenuHtml['date_versement_prevue'])) {
-    $dateProchainReleve = new DateTime($prochainRevenuHtml['date_versement_prevue']);
+  // 1. Récupération dynamique du jour de début de période de l'utilisateur
+  $jourDebutPeriode = 1; // Valeur par défaut
+  $stmtUser = $pdo->prepare("SELECT jour_debut_periode FROM users WHERE id = ?");
+  $stmtUser->execute([$currentUserId]);
+  $userDataUser = $stmtUser->fetch(PDO::FETCH_ASSOC);
+  if ($userDataUser && isset($userDataUser['jour_debut_periode'])) {
+    $jourDebutPeriode = (int) $userDataUser['jour_debut_periode'];
+  }
+
+  // 2. Votre logique exacte pour calculer le relevé bancaire sans l'écraser
+  $dateAujourdhuiClean = new DateTime(date('Y-m-d', strtotime($currentDateJour)));
+  $jourCourantNum     = (int) $dateAujourdhuiClean->format('d');
+  $jourDebutStr       = str_pad($jourDebutPeriode, 2, '0', STR_PAD_LEFT);
+
+  if ($jourCourantNum >= $jourDebutPeriode) {
+    $prochainDebutPeriode = new DateTime(date('Y-m-' . $jourDebutStr, strtotime('+1 month', strtotime($currentDateJour))));
   } else {
-    $dateProchainReleve = new DateTime('last day of this month');
+    $prochainDebutPeriode = new DateTime(date('Y-m-' . $jourDebutStr, strtotime($currentDateJour)));
+  }
+
+  $dateProchainReleve = clone $prochainDebutPeriode;
+  $dateProchainReleve->modify('-1 day');
+
+  $intervalleReleve    = $dateAujourdhuiClean->diff($dateProchainReleve);
+  $joursRestantsReleve = (int) $intervalleReleve->days;
+  if ($joursRestantsReleve < 0) {
+    $joursRestantsReleve = 0;
   }
 }

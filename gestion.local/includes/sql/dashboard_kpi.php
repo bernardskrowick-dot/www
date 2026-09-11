@@ -231,11 +231,16 @@ function computeDashboardData(PDO $pdo, int $userId, string $mois, string $dateJ
   $jourCourantNum     = (int) $dateAujourdhuiClean->format('d');
   $jourDebutStr       = str_pad($jourDebutPeriode, 2, '0', STR_PAD_LEFT);
 
+  // Calcul du prochain début de période bancaire
   if ($jourCourantNum >= $jourDebutPeriode) {
-    $dateProchainReleve = new DateTime(date('Y-m-' . $jourDebutStr, strtotime('+1 month', strtotime($dateJour))));
+    $prochainDebutPeriode = new DateTime(date('Y-m-' . $jourDebutStr, strtotime('+1 month', strtotime($dateJour))));
   } else {
-    $dateProchainReleve = new DateTime(date('Y-m-' . $jourDebutStr, strtotime($dateJour)));
+    $prochainDebutPeriode = new DateTime(date('Y-m-' . $jourDebutStr, strtotime($dateJour)));
   }
+
+  // Le KPI affiche la fin de la période actuelle (veille du prochain début)
+  $dateProchainReleve = clone $prochainDebutPeriode;
+  $dateProchainReleve->modify('-1 day');
 
   $intervalleReleve    = $dateAujourdhuiClean->diff($dateProchainReleve);
   $joursRestantsReleve = (int) $intervalleReleve->days;
