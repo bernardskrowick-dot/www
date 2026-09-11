@@ -231,7 +231,7 @@ function computeDashboardData(PDO $pdo, int $userId, string $mois, string $dateJ
   $jourCourantNum     = (int) $dateAujourdhuiClean->format('d');
   $jourDebutStr       = str_pad($jourDebutPeriode, 2, '0', STR_PAD_LEFT);
 
-  if ($jourCourantNum > $jourDebutPeriode) {
+  if ($jourCourantNum >= $jourDebutPeriode) {
     $dateProchainReleve = new DateTime(date('Y-m-' . $jourDebutStr, strtotime('+1 month', strtotime($dateJour))));
   } else {
     $dateProchainReleve = new DateTime(date('Y-m-' . $jourDebutStr, strtotime($dateJour)));
