@@ -28,7 +28,7 @@ function getDashboardAchatsPeriode(PDO $pdo, int $userId, string $mois, int $jou
             ON echeances.achat_id = achats.id
         WHERE DATE_FORMAT(
                 CASE
-                    WHEN DAY(echeances.date_echeance) > :jour_debut
+                    WHEN DAY(echeances.date_echeance) >= :jour_debut
                     THEN DATE_ADD(echeances.date_echeance, INTERVAL 1 MONTH)
                     ELSE echeances.date_echeance
                 END,
@@ -67,7 +67,7 @@ function getDashboardVersementsPeriode(PDO $pdo, int $userId, string $mois, int 
             ON ressources.id = versements.ressource_id
         WHERE DATE_FORMAT(
                 CASE
-                    WHEN DAY(versements.date_versement_prevue) > :jour_debut
+                    WHEN DAY(versements.date_versement_prevue) >= :jour_debut
                     THEN DATE_ADD(versements.date_versement_prevue, INTERVAL 1 MONTH)
                     ELSE versements.date_versement_prevue
                 END,
@@ -258,7 +258,7 @@ function getDashboardPlusGrosseDepense(PDO $pdo, int $userId, string $mois, int 
         INNER JOIN achats ON echeances.achat_id = achats.id
         WHERE DATE_FORMAT(
                 CASE
-                    WHEN DAY(echeances.date_echeance) > :jour_debut
+                    WHEN DAY(echeances.date_echeance) >= :jour_debut
                     THEN DATE_ADD(echeances.date_echeance, INTERVAL 1 MONTH)
                     ELSE echeances.date_echeance
                 END,
@@ -306,7 +306,7 @@ function getDashboardSoldeMoisDepenses(PDO $pdo, int $userId, int $jourDebut, st
         WHERE a.user_id = :user_id
           AND DATE_FORMAT(
                 CASE
-                    WHEN DAY(e.date_echeance) > :jour_debut
+                    WHEN DAY(e.date_echeance) >= :jour_debut
                     THEN DATE_ADD(e.date_echeance, INTERVAL 1 MONTH)
                     ELSE e.date_echeance
                 END,
@@ -330,7 +330,7 @@ function getDashboardSoldeMoisRevenus(PDO $pdo, int $userId, int $jourDebut, str
         SELECT SUM(
             CASE
                 WHEN v.statut = 'percu' THEN COALESCE(v.montant_reel, v.montant_prevu)
-                ELSE v.montant_prevu
+                ELSE 0
             END
         )
         FROM versements v
@@ -338,7 +338,7 @@ function getDashboardSoldeMoisRevenus(PDO $pdo, int $userId, int $jourDebut, str
         WHERE r.user_id = :user_id
           AND DATE_FORMAT(
                 CASE
-                    WHEN DAY(v.date_versement_prevue) > :jour_debut
+                    WHEN DAY(v.date_versement_prevue) >= :jour_debut
                     THEN DATE_ADD(v.date_versement_prevue, INTERVAL 1 MONTH)
                     ELSE v.date_versement_prevue
                 END,

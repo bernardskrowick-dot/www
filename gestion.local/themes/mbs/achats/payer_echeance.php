@@ -1,9 +1,10 @@
 <?php
-/* Version: v1.19.2 (Rev #26) - 2026-08-16 */
+/* Version: v1.19.3 - 2026-09-12 */
 
 /**
  * payer_echeance.php - Version intégrée au Routeur
  * RÈGLES : CSRF, PDO, Commentaires, Constantes.
+ * AJOUT : Contrôle anti-paiement anticipé
  */
 
 // 🔒 Sécurité : Le header est déjà inclus par router.php, on vérifie la session
@@ -13,15 +14,13 @@ if (empty($_SESSION['user_id'])) {
 }
 /* ----------------------------- Sécurité ----------------------------- */
 
-// Pas besoin de session_start ou d'inclusions, init.php s'en est chargé via router.php
-
 // 🔒 Autoriser uniquement les requêtes POST
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header('Location: router.php?p=index.php');
     exit;
 }
 
-// 🛡️ Vérification CSRF (La fonction est déjà chargée par init.php)
+// 🛡️ Vérification CSRF
 if (function_exists('verify_csrf_token')) {
     verify_csrf_token();
 }
@@ -38,7 +37,7 @@ if (!$echeanceId) {
 /* ----------------------------- Logique PDO ----------------------------- */
 
 $stmt = $pdo->prepare('
-    SELECT e.id, e.achat_id, e.statut 
+    SELECT e.id, e.achat_id, e.statut, e.date_echeance
     FROM echeances e
     INNER JOIN achats a ON e.achat_id = a.id
     WHERE e.id = :id AND a.user_id = :user_id
@@ -57,10 +56,20 @@ if (!$echeance) {
     exit;
 }
 
-/* ----------------------------- Action ----------------------------- */
+/* ----------------------------- Contrôle anti-paiement anticipé ----------------------------- */
 
 if ($echeance['statut'] !== 'payee') {
-    // MODIFICATION : Mise à jour du statut, de la date de paiement, et des drapeaux de synchronisation (is_synced = 0 et updated_at) pour que le cron remonte l'information
+
+    // On empêche de marquer comme payée si la date d'échéance est dans le futur
+    if (!empty($echeance['date_echeance']) && $echeance['date_echeance'] > date('Y-m-d')) {
+        $_SESSION['flash_error'] = 'Impossible de marquer comme payée : cette échéance est prévue le '
+            . date('d/m/Y', strtotime($echeance['date_echeance'])) . '.';
+
+        header('Location: router.php?p=achats/echeancier.php&id=' . (int) $echeance['achat_id']);
+        exit;
+    }
+
+    // Mise à jour normale
     $stmt = $pdo->prepare("
         UPDATE echeances 
         SET statut = 'payee', 
@@ -70,11 +79,11 @@ if ($echeance['statut'] !== 'payee') {
         WHERE id = :id
     ");
     $stmt->execute(['id' => $echeanceId]);
+
     $_SESSION['flash_success'] = '✅ Échéance payée avec succès.';
 }
 
 /* ----------------------------- Redirection ----------------------------- */
 
-// On repart via le routeur
 header('Location: router.php?p=achats/echeancier.php&id=' . (int) $echeance['achat_id']);
 exit;
