@@ -131,11 +131,15 @@ function syncTableUpsert(PDO $pdo, string $tableName, array $items, string $prim
     }
 
     if ($localItem) {
-      if (isset($item['updated_at']) && isset($localItem['updated_at']) && strtotime($item['updated_at']) > strtotime($localItem['updated_at'])) {
+      // On accepte la mise à jour si la date distante est supérieure ou égale, 
+      // ou si les timestamps sont identiques mais que l'on veut forcer l'alignement.
+      if (isset($item['updated_at']) && isset($localItem['updated_at']) && strtotime($item['updated_at']) >= strtotime($localItem['updated_at'])) {
         $updateValues = array_merge($values, [$pkVal]);
         $stmtUpdate->execute($updateValues);
       }
-    } else {
+    }
+    
+    else {
       $insertValues = array_merge([$pkVal], $values);
       $stmtInsert->execute($insertValues);
     }
