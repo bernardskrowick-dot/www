@@ -37,13 +37,20 @@ if (!isset($_GET['mois'])) {
     }
 }
 
-/* ==========================================================================
-   SECTION 1 : RÉCUPÉRATION DES DONNÉES DE LA PÉRIODE COURANTE (SQL)
+   /* ==========================================================================
+   SECTION 1 : RÉCUPÉRATION DES DONNÉES DE LA PÉRIODE COURANTE ET SUIVANTE (SQL)
    ========================================================================== */
 
-$achats = getDashboardAchatsPeriode($pdo, $user_id, $mois, $jourDebutPeriode);
-$versements = getDashboardVersementsPeriode($pdo, $user_id, $mois, $jourDebutPeriode);
+        // 1. Données de la période courante
+        $achats = getDashboardAchatsPeriode($pdo, $user_id, $mois, $jourDebutPeriode);
+        $versements = getDashboardVersementsPeriode($pdo, $user_id, $mois, $jourDebutPeriode);
 
+        // 2. Détermination de la période suivante (mois + 1)
+        $moisSuivant = date('Y-m', strtotime($mois . '-01 +1 month'));
+
+        // 3. Données de la période suivante pour la projection du point bas étendu
+        $achatsSuivants = getDashboardAchatsPeriode($pdo, $user_id, $moisSuivant, $jourDebutPeriode);
+        $versementsSuivants = getDashboardVersementsPeriode($pdo, $user_id, $moisSuivant, $jourDebutPeriode);
 
 /* ==========================================================================
    SECTION 2 : SYNTHÈSES GLOBALES & STATISTIQUES (SQL)
@@ -114,21 +121,19 @@ if ($montantPlusGrosseDepense >= 1000) {
     $classeDepense = 'text-success';
 }
 
-
-/* ==========================================================================
+   /* ==========================================================================
    SECTION 4, 5 & 6 : CALCUL DU SOLDE HISTORIQUE, TRAITEMENTS & KPIs
    ========================================================================== */
 
-// Appel de la fonction centralisée qui exécute la boucle historique et tous les KPI
-$kpiData = computeDashboardData($pdo, $user_id, $mois, $dateJour, $achats, $versements);
-extract($kpiData); // Restaure toutes les variables de calcul pour l'affichage HTML
+        // Appel de la fonction centralisée avec transmission des données courantes ET de la période suivante
+        $kpiData = computeDashboardData($pdo, $user_id, $mois, $dateJour, $achats, $versements, $achatsSuivants, $versementsSuivants);
+        extract($kpiData); // Restaure toutes les variables de calcul pour l'affichage HTML
 
-
-/* ==========================================================================
+        /* ==========================================================================
    SECTION 7 : PROJECTIONS ANNUELLES (AU 31 DÉCEMBRE) (SQL)
    ========================================================================== */
 
-$anneeEnCours = (int) date('Y', strtotime($dateJour));
+        $anneeEnCours = (int) date('Y', strtotime($dateJour));
 $dateFinAnnee = $anneeEnCours . '-12-31';
 
 $resteEncaisserAnnee = getDashboardResteEncaisserAnnee($pdo, $user_id, $dateFinAnnee);

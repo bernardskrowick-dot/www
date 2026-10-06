@@ -190,41 +190,51 @@ function getDashboardSoldeRevenusReels(PDO $pdo, int $userId, string $dateJour):
   return (float) $stmt->fetchColumn();
 }
 
+
 /**
  * 3.3 Alertes financières unifiées (Achats + Revenus à 7 jours)
  */
+
+/**
+ * 3.3 Alertes financières unifiées (Achats + Revenus à 7 jours)
+ * Modifiée pour intégrer les identifiants d'achats et d'échéances,
+ * et un alignement strict des colonnes (NULL pour les ressources).
+ */
 function getDashboardAlertesFinancieres(PDO $pdo, int $userId, string $dateJour): array
 {
-  $stmt = $pdo->prepare("
+    $stmt = $pdo->prepare("
         SELECT 
             e.date_echeance AS date_event, 
             a.nom_marchand COLLATE utf8mb4_unicode_ci AS libelle, 
             e.montant, 
-            'achat' AS type_flux 
+            'achat' AS type_flux,
+            e.achat_id AS id_achat,
+            e.id AS id_echeance,
+            NULL AS id_ressource
         FROM echeances e
         INNER JOIN achats a ON a.id = e.achat_id
         WHERE a.user_id = :user_id
           AND e.statut != 'payee'
           AND e.date_echeance <= DATE_ADD(:dateJour, INTERVAL 7 DAY)
-        
         UNION ALL
-        
         SELECT 
             v.date_versement_prevue AS date_event, 
             r.organisme COLLATE utf8mb4_unicode_ci AS libelle, 
             v.montant_prevu AS montant, 
-            'ressource' AS type_flux 
+            'ressource' AS type_flux,
+            NULL AS id_achat,
+            NULL AS id_echeance,
+            v.ressource_id AS id_ressource
         FROM versements v
         INNER JOIN ressources r ON r.id = v.ressource_id
         WHERE r.user_id = :user_id
           AND (v.statut = 'attendu' OR v.statut IS NULL OR v.statut = '')
           AND v.date_versement_prevue <= DATE_ADD(:dateJour, INTERVAL 7 DAY)
-        
         ORDER BY date_event ASC
         LIMIT 10
     ");
-  $stmt->execute(['user_id' => $userId, 'dateJour' => $dateJour]);
-  return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $stmt->execute(['user_id' => $userId, 'dateJour' => $dateJour]);
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
 /**
@@ -232,7 +242,7 @@ function getDashboardAlertesFinancieres(PDO $pdo, int $userId, string $dateJour)
  */
 function getDashboardProchainRevenu(PDO $pdo, int $userId, string $dateJour): ?array
 {
-  $stmt = $pdo->prepare("
+    $stmt = $pdo->prepare("
         SELECT r.titre, v.date_versement_prevue, v.montant_prevu
         FROM versements v
         INNER JOIN ressources r ON r.id = v.ressource_id
@@ -242,9 +252,9 @@ function getDashboardProchainRevenu(PDO $pdo, int $userId, string $dateJour): ?a
         ORDER BY v.date_versement_prevue ASC
         LIMIT 1
     ");
-  $stmt->execute(['user_id' => $userId, 'dateJour' => $dateJour]);
-  $result = $stmt->fetch(PDO::FETCH_ASSOC);
-  return $result ?: null;
+    $stmt->execute(['user_id' => $userId, 'dateJour' => $dateJour]);
+    $result = $stmt->fetch(PDO::FETCH_ASSOC);
+    return $result ?: null;
 }
 
 /**
