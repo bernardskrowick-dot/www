@@ -24,7 +24,7 @@ $idCat = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
 $success = false;
 $error_msg = '';
 
-        // On ne permet pas de supprimer la catégorie par défaut (ID 1)
+        // On empêche de supprimer la catégorie par défaut (ID 1) et on valide l'ID
         if ($idCat && $idCat > 1) {
             try {
                 $pdo->beginTransaction();
@@ -37,26 +37,16 @@ $error_msg = '';
                 $stmtSousCat = $pdo->prepare('UPDATE categories_ressources SET parent_id = NULL WHERE parent_id = ? AND user_id = ?');
                 $stmtSousCat->execute([$idCat, $_SESSION['user_id']]);
 
-                // 3️⃣ Récupérer le nom de la catégorie avant suppression pour le log
-                $stmtNom = $pdo->prepare('SELECT nom FROM categories_ressources WHERE id = ? AND user_id = ?');
-                $stmtNom->execute([$idCat, $_SESSION['user_id']]);
-                $catData = $stmtNom->fetch(PDO::FETCH_ASSOC);
-                $nomCat = $catData ? $catData['nom'] : 'Inconnu';
-
-                // 4️⃣ Suppression physique de la catégorie
+                // 3️⃣ Suppression physique de la catégorie
                 $stmtDel = $pdo->prepare('DELETE FROM categories_ressources WHERE id = ? AND user_id = ?');
                 $stmtDel->execute([$idCat, $_SESSION['user_id']]);
 
                 if ($stmtDel->rowCount() > 0) {
-            // 5️⃣ Ajout dans la table de log enrichie pour la synchronisation
-            $stmtLog = $pdo->prepare('INSERT INTO sync_deletions (table_name, record_id, user_id, nom) VALUES (?, ?, ?, ?)');
-            $stmtLog->execute(['categories_ressources', $idCat, $_SESSION['user_id'], $nomCat]);
-
                     $pdo->commit();
                     $success = true;
                 } else {
                     $pdo->rollBack();
-                    $error_msg = "Vous n'avez pas l'autorisation de supprimer cette catégorie.";
+                    $error_msg = "Vous n'avez pas l'autorisation de supprimer cette catégorie ou elle n'existe pas.";
                 }
             } catch (Exception $e) {
                 if ($pdo->inTransaction()) {

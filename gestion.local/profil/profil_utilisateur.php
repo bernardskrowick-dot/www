@@ -295,8 +295,7 @@ if (isset($_GET['success'])) {
 
             <div class="row">
                 <label class="form-label fw-bold">🔒 Configurer la double authentification (2FA))</label>
-                <div class="col-md-6 mb-3">
-                    <a href="<?= BASE_URL ?>router.php?p=enable-2fa.php" class="btn btn-secondary">
+                <div class="col-md-6 mb-3"><a href="<?= BASE_URL ?>router.php?p=enable-2fa.php" class="btn btn-secondary">
                         Configurer la double authentification (2FA)
                     </a>
                 </div>

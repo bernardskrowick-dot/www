@@ -11,7 +11,7 @@ require_once __DIR__ . '/includes/connexion.php'; // Fournit l'objet $pdo
 
 header('Content-Type: application/json; charset=utf-8');
 
-// 1. Vérification de la méthode HTTP (POST obligatoire)
+// Vérification de la méthode HTTP (POST obligatoire)
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
   http_response_code(405);
   echo json_encode(['success' => false, 'error' => 'Méthode non autorisée.']);
@@ -31,7 +31,7 @@ $response = ['success' => false];
 
 // Définition centralisée des tables et de leurs structures (identique au client)
 $tablesConfig = [
-  // 1. Tables sans dépendances (Niveau 0)
+  // Tables sans dépendances (Niveau 0)
   'users' => [
     'pk' => 'id',
     'columns' => ['username', 'email', 'password_hash', 'role', 'is_super_admin', 'statut', 'theme', 'solde_initial', 'premiere_periode', 'jour_debut_periode', 'sticky_pos', 'updated_at', 'deleted_at']
@@ -60,7 +60,7 @@ $tablesConfig = [
   ],
   'ressources' => [
     'pk' => 'id',
-    'columns' => ['user_id', 'titre', 'organisme', 'montant_prevu', 'date_depart', 'recurrence', 'categorie_id', 'date_creation', 'date_fin', 'updated_at', 'deleted_at']
+    'columns' => ['user_id', 'titre', 'organisme', 'montant_prevu', 'date_depart', 'recurrence', 'actif', 'categorie_id', 'date_creation', 'date_fin', 'updated_at', 'deleted_at']
   ],
   'historique_fichiers' => [
     'pk' => 'id',
@@ -124,7 +124,7 @@ try {
 
     $pdo->beginTransaction();
 
-    // A. Traitement des suppressions transmises par le local (Suppression physique distante)
+    // A. Traitement des suppressions transmises par le local
     if (!empty($deletions) && is_array($deletions)) {
       foreach ($tables as $table) {
         $idsToDelete = $deletions[$table] ?? [];
@@ -138,16 +138,18 @@ try {
       }
     }
 
-    // B. Traitement des inserts / updates (Upsert générique côté serveur)
+    // B. Traitement des inserts / updates avec collecte des IDs validés
+    $processedIds = [];
+
     foreach ($tables as $table) {
       $tableItems = $items[$table] ?? [];
+      $processedIds[$table] = [];
       if (empty($tableItems)) {
         continue;
       }
 
       $columns = $tablesConfig[$table]['columns'];
 
-      // Cas particulier pour la table 'fichiers' (unicité sur 'chemin', ID auto-incrémenté)
       if ($table === 'fichiers') {
         $stmtCheck = $pdo->prepare("SELECT updated_at, deleted_at, num_revision FROM fichiers WHERE chemin = ?");
 
@@ -184,8 +186,7 @@ try {
             $incomingRevision = intval($item['num_revision'] ?? 0);
             $remoteRevision = intval($remoteItem['num_revision'] ?? 0);
 
-            // Priorité au numéro de révision le plus élevé, puis à updated_at
-            if ($incomingRevision > $remoteRevision || ($incomingRevision === $remoteRevision && isset($item['updated_at']) && isset($remoteItem['updated_at']) && strtotime($item['updated_at']) > strtotime($remoteItem['updated_at']))) {
+            if ($incomingRevision > $remoteRevision || ($incomingRevision === $remoteRevision && isset($item['updated_at']) && isset($remoteItem['updated_at']) && strtotime($item['updated_at']) >= strtotime($remoteItem['updated_at']))) {
               $updateValues = [];
               foreach ($columns as $col) {
                 if ($col === 'chemin') continue;
@@ -194,14 +195,16 @@ try {
               $updateValues[] = $cheminVal;
               $stmtUpdate->execute($updateValues);
             }
+            // On acquitte dans tous les cas pour éviter une boucle de push
+            $processedIds[$table][] = $cheminVal;
           } else {
             $stmtInsert->execute($values);
+            $processedIds[$table][] = $cheminVal;
           }
         }
       } else {
-        // Traitement standard pour les autres tables
         $pk = $tablesConfig[$table]['pk'];
-        $stmtCheck = $pdo->prepare("SELECT updated_at, deleted_at FROM {$table} WHERE {$pk} = ?");
+        $stmtCheck = $pdo->prepare("SELECT * FROM {$table} WHERE {$pk} = ?");
 
         $updateFields = [];
         foreach ($columns as $col) {
@@ -232,13 +235,30 @@ try {
           }
 
           if ($remoteItem) {
-            if (isset($item['updated_at']) && isset($remoteItem['updated_at']) && strtotime($item['updated_at']) > strtotime($remoteItem['updated_at'])) {
+            $doUpdate = false;
+
+            // 1. Règle métier critique : force l'update si le versement passe de 'attendu' à 'percu'
+            if ($table === 'versements' && ($item['statut'] ?? '') === 'percu' && ($remoteItem['statut'] ?? '') === 'attendu') {
+              $doUpdate = true;
+            }
+            // 2. Sinon, règle générale avec tolérance de 120 secondes sur updated_at
+            else {
+              $toleranceSeconds = 120;
+              if (
+                isset($item['updated_at'], $remoteItem['updated_at'])
+                && strtotime($item['updated_at']) >= (strtotime($remoteItem['updated_at']) - $toleranceSeconds)
+              ) {
+                $doUpdate = true;
+              }
+            }
+
+            if ($doUpdate) {
               $updateValues = array_merge($values, [$pkVal]);
               $stmtUpdate->execute($updateValues);
             }
-          } else {
-            $insertValues = array_merge([$pkVal], $values);
-            $stmtInsert->execute($insertValues);
+
+            // On acquitte l'ID car le distant a traité / comparé l'élément
+            $processedIds[$table][] = $pkVal;
           }
         }
       }
@@ -246,6 +266,7 @@ try {
 
     $pdo->commit();
     $response['success'] = true;
+    $response['processed_ids'] = $processedIds; // Renvoie la confirmation des IDs
     $response['message'] = 'Synchronisation distante réussie.';
   }
 

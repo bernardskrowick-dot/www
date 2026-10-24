@@ -1,5 +1,5 @@
 <?php
-/* Version: v1.21.0 (Rev #10) - 2026-08-08 */
+/* Version: v1.21.0 (Rev #7) - 2026-08-08 */
 
 /**
  * Fichier : supprimer_achat.php
@@ -64,29 +64,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['confirm_action'])) {
             // B. Début de la transaction
             $pdo->beginTransaction();
 
-            // 1️⃣ Récupérer les IDs des échéances liées avant leur suppression pour les logger
-            $stmtEchIds = $pdo->prepare('SELECT id FROM echeances WHERE achat_id = ?');
-            $stmtEchIds->execute([$idAchat]);
-            $echeancesIds = $stmtEchIds->fetchAll(PDO::FETCH_COLUMN);
-
-            // 2️⃣ Suppression des échéances (Enfants)
+            // C. Suppression des échéances (Enfants)
             $stmtDelEch = $pdo->prepare('DELETE FROM echeances WHERE achat_id = ?');
             $stmtDelEch->execute([$idAchat]);
 
-            // 3️⃣ Logguer la suppression de chaque échéance pour la synchronisation
-            $stmtLogEch = $pdo->prepare('INSERT INTO sync_deletions (table_name, record_id, user_id, nom) VALUES (?, ?, ?, ?)');
-            foreach ($echeancesIds as $echId) {
-                // Pour une échéance, on peut stocker un libellé descriptif ou "Échéance #ID" dans la colonne nom
-                $stmtLogEch->execute(['echeances', $echId, $_SESSION['user_id'], 'Échéance #' . $echId]);
-            }
-
-            // 4️⃣ Suppression de l'achat (Parent)
-            $stmtDelAch = $pdo->prepare('DELETE FROM achats WHERE id = ? AND user_id = ?');
-            $stmtDelAch->execute([$idAchat, $_SESSION['user_id']]);
-
-            // 5️⃣ Logguer la suppression de l'achat pour la synchronisation
-            $stmtLogAch = $pdo->prepare('INSERT INTO sync_deletions (table_name, record_id, user_id, nom) VALUES (?, ?, ?, ?)');
-            $stmtLogAch->execute(['achats', $idAchat, $_SESSION['user_id'], $data['titre']]);
+            // D. Suppression de l'achat (Parent)
+            $stmtDelAch = $pdo->prepare('DELETE FROM achats WHERE id = ?');
+            $stmtDelAch->execute([$idAchat]);
 
             // ✅ Validation
             $pdo->commit();
@@ -100,7 +84,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['confirm_action'])) {
             // Redirection immédiate pour afficher le message sur le dashboard
             header('Location: ' . BASE_URL . 'router.php?p=dashboard_revenus.php');
             exit;
-        
         } else {
             $error_msg = "Accès refusé : vous n'êtes pas le propriétaire de cet achat.";
             $show_confirmation = false;

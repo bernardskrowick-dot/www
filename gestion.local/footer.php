@@ -45,30 +45,23 @@ $revisionPageFooter = (int) ($stmtFooterRev->fetchColumn() ?: 0);
         <div class="d-flex flex-column flex-md-row justify-content-between align-items-center">
 
             <div class="small d-inline-flex align-items-center">
-                <a href="<?= BASE_URL ?>index.php" class="text-decoration-none footer-brand-pill me-2">
-                    <img src="<?= BASE_URL ?>images/MBS Gestions Logo.png"
-                        alt="MBS Gestions"
-                        class="footer-logo">
-
-                    <?php
-                    /** ==========================================================================
-                     *  Affichage dynamique de la version globale de l'application
-                     *  ========================================================================== */
-                    ?>
-                    <span class="badge-neon version-badge ms-1 text-light border border-secondary">
-                        <?= 'V ' . ltrim(htmlspecialchars($versionAppFooter), 'vV ') ?>
-                    </span>
-                </a>
-                <span class="footer-status text-muted">&copy; <?= date('Y') ?> &bull; Gestion Privée</span>
-            </div>
+    <a href="<?= BASE_URL ?>index.php" class="text-decoration-none footer-brand-pill me-2">
+        <img src="<?= BASE_URL ?>images/MBS Gestions Logo.png" 
+             alt="MBS Gestions" 
+             class="footer-logo">
+        
+        <!-- Affichage dynamique de la version globale de l'application -->
+        <span class="badge-neon version-badge ms-1 text-light border border-secondary">
+            <?= 'V ' . ltrim(htmlspecialchars($versionAppFooter), 'vV ') ?>
+        </span>
+    </a>
+    <span class="footer-status text-muted">&copy; <?= date('Y') ?> &bull; Gestion Privée</span>
+</div>
 
             <div class="footer-status text-muted small mt-2 mt-md-0">
                 <span class="text-success">●</span> System Ready &bull;
-                <?php
-                /** ==========================================================================
-                 *  Affichage dynamique du titre de la page courante et de sa révision
-                 *  ========================================================================== */
-                if (!empty($nomPageAffichage)): ?>
+                <!-- Affichage dynamique du titre de la page courante et de sa révision -->
+                <?php if (!empty($nomPageAffichage)): ?>
                     <span class="text-info"><?= htmlspecialchars($nomPageAffichage) ?> (Rev
                         #<?= $revisionPageFooter ?>)</span> &bull;
                 <?php endif; ?>
@@ -92,24 +85,18 @@ $revisionPageFooter = (int) ($stmtFooterRev->fetchColumn() ?: 0);
 
 <?php
 
-
-/** ==========================================================================
- *  OPTIMISATION : Charger Chart.js uniquement si on n'est pas sur login.php
- *  Car ces scripts ne sont pas nécessaires pour s'authentifier.
- *  ========================================================================== */
-
+/**
+ * OPTIMISATION : Charger Chart.js uniquement si on n'est pas sur login.php
+ * Car ces scripts ne sont pas nécessaires pour s'authentifier.
+ */
 if (basename($_SERVER['PHP_SELF']) !== 'login.php'):
-?>
+    ?>
     <script src="<?= BASE_URL ?>js/chart.umd.min.js"></script>
     <script src="<?= BASE_URL ?>js/chartjs-plugin-datalabels.min.js"></script>
 <?php endif; ?>
 
 
-<?php
-/** ==========================================================================
- *  Bouton sticky “Retour en haut”
- *  ========================================================================== */
-?>
+<!-- Bouton sticky “Retour en haut” -->
 <button id="scrollTopBtn" title="Remonter en haut"><span class="icon">🏠</span class="back-button">Haut</button>
 
 <script>
@@ -124,10 +111,7 @@ if (basename($_SERVER['PHP_SELF']) !== 'login.php'):
     });
 
     scrollTopBtn.addEventListener("click", () => {
-        window.scrollTo({
-            top: 0,
-            behavior: "smooth"
-        });
+        window.scrollTo({ top: 0, behavior: "smooth" });
     });
 
     function updateAllClocks() {

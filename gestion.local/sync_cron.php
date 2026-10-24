@@ -4,8 +4,8 @@
  * Script de synchronisation cron bidirectionnel (Local <-> Distant)
  * Ce script est destiné à être exécuté par une tâche planifiée (Cron)
  */
-
-// 1. Inclusion des fichiers de configuration et de connexion locaux
+// Tout au début de sync_cron.php
+error_log("CRON EXECUTE A : " . date('Y-m-d H:i:s') . "\n", 3, __DIR__ . '/sync_cron_debug.log');
 require_once __DIR__ . '/includes/config.php';
 require_once __DIR__ . '/includes/connexion-cron.php';
 require_once __DIR__ . '/includes/sync_functions.php';
@@ -23,7 +23,7 @@ $stateFile = __DIR__ . '/last_sync.txt';
 
 // Définition centralisée de toutes les tables gérées et de leur clé primaire si différente de 'id'
 $tablesConfig = [
-  // 1. Tables sans dépendances (Niveau 0)
+  //Tables sans dépendances (Niveau 0)
   'users' => [
     'pk' => 'id',
     'columns' => ['username', 'email', 'password_hash', 'role', 'is_super_admin', 'statut', 'theme', 'solde_initial', 'premiere_periode', 'jour_debut_periode', 'sticky_pos', 'updated_at', 'deleted_at']
@@ -52,7 +52,7 @@ $tablesConfig = [
   ],
   'ressources' => [
     'pk' => 'id',
-    'columns' => ['user_id', 'titre', 'organisme', 'montant_prevu', 'date_depart', 'recurrence', 'categorie_id', 'date_creation', 'date_fin', 'updated_at', 'deleted_at']
+    'columns' => ['user_id', 'titre', 'organisme', 'montant_prevu', 'date_depart', 'recurrence', 'actif', 'categorie_id', 'date_creation', 'date_fin', 'updated_at', 'deleted_at']
   ],
   'historique_fichiers' => [
     'pk' => 'id',
@@ -112,13 +112,25 @@ try {
 
   // Nettoyage local de la synchronisation des items
   foreach ($tables as $table) {
-    $pdo->exec("UPDATE {$table} SET is_synced = 1 WHERE is_synced = 0");
+    $pk = ($table === 'fichiers') ? 'chemin' : 'id';
+
+    foreach ($itemsPayload[$table] as $item) {
+      $pkVal = $item[$pk] ?? null;
+
+      if ($pkVal !== null) {
+        $stmt = $pdo->prepare(
+          "UPDATE {$table} SET is_synced = 1 WHERE {$pk} = ? AND is_synced = 0"
+        );
+        $stmt->execute([$pkVal]);
+      }
+    }
   }
 
   // Nettoyage local des tables sync_deletions après succès du push
   foreach ($tables as $table) {
     clearLocalDeletions($pdo, $table, $deletionsPayload[$table]);
   }
+
 
   // =========================================================================
   // ÉTAPE 2 : RÉCUPÉRATION DES CHANGEMENTS DISTANTS (GET)

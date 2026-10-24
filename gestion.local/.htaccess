@@ -17,7 +17,7 @@ Options -Indexes
 # <IfModule mod_rewrite.c>
 #     RewriteEngine On
 #     RewriteCond %{HTTP_REFERER} !^$
-#     RewriteCond %{HTTP_REFERER} !^https://(www\.)mysterb.ddns\.net [NC]
+#     RewriteCond %{HTTP_REFERER} !^https://(www\.)gestion.hugueslenoir\.fr [NC]
 #     RewriteRule \.(jpg|jpeg|png|gif|webp)$ - [F,L,NC]
 # </IfModule>
 

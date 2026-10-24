@@ -1,5 +1,5 @@
 <?php
-/* Version: v1.21.0 (Rev #26) - 2026-08-08 */
+/* Version: v1.21.1 (Rev #27) - 2026-10-24 */
 
 /**
  * Fichier des fonctions utilitaires pour la synchronisation
@@ -103,7 +103,7 @@ function syncTableUpsert(PDO $pdo, string $tableName, array $items, string $prim
     return;
   }
 
-  // Traitement standard pour les autres tables
+  // Traitement standard et unifié pour toutes les autres tables (y compris versements et echeances)
   $stmtCheck = $pdo->prepare("SELECT updated_at FROM {$tableName} WHERE {$primaryKey} = ?");
 
   $updateFields = [];
@@ -131,15 +131,28 @@ function syncTableUpsert(PDO $pdo, string $tableName, array $items, string $prim
     }
 
     if ($localItem) {
-      // On accepte la mise à jour si la date distante est supérieure ou égale, 
-      // ou si les timestamps sont identiques mais que l'on veut forcer l'alignement.
-      if (isset($item['updated_at']) && isset($localItem['updated_at']) && strtotime($item['updated_at']) >= strtotime($localItem['updated_at'])) {
+      $doUpdate = false;
+
+      // Règle métier : force l'update si le versement passe de 'attendu' à 'percu'
+      if ($tableName === 'versements' && ($item['statut'] ?? '') === 'percu' && ($localItem['statut'] ?? '') === 'attendu') {
+        $doUpdate = true;
+      }
+      // Sinon, règle générale avec tolérance de 120 secondes
+      else {
+        $toleranceSeconds = 120;
+        if (
+          isset($item['updated_at'], $localItem['updated_at'])
+          && strtotime($item['updated_at']) >= (strtotime($localItem['updated_at']) - $toleranceSeconds)
+        ) {
+          $doUpdate = true;
+        }
+      }
+
+      if ($doUpdate) {
         $updateValues = array_merge($values, [$pkVal]);
         $stmtUpdate->execute($updateValues);
       }
-    }
-    
-    else {
+    } else {
       $insertValues = array_merge([$pkVal], $values);
       $stmtInsert->execute($insertValues);
     }
@@ -157,12 +170,12 @@ function getLocalUnsyncedItems(PDO $pdo, string $tableName): array
 }
 
 /**
- * Récupère les IDs des éléments supprimés localement depuis la dernière synchro
+ * Récupère les IDs des éléments supprimés localement depuis la dernière synchro (filtré par deleted_at)
  */
 function getLocalDeletions(PDO $pdo, string $tableName, string $lastSync): array
 {
-  $stmt = $pdo->prepare("SELECT record_id FROM sync_deletions WHERE table_name = ?");
-  $stmt->execute([$tableName]);
+  $stmt = $pdo->prepare("SELECT record_id FROM sync_deletions WHERE table_name = ? AND deleted_at > ?");
+  $stmt->execute([$tableName, $lastSync]);
   return $stmt->fetchAll(PDO::FETCH_COLUMN);
 }
 

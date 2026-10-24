@@ -1,5 +1,5 @@
 <?php
-/* Version: v1.19.2 (Rev #26) - 2026-08-16 */
+/* Version: v1.42.0 (Rev #12) - 2026-10-19 */
 
 /**
  * payer_versement.php - Marque un versement comme perçu

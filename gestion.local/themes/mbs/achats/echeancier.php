@@ -1,5 +1,5 @@
 <?php
-/* Version: v1.21.0 (Rev #13) - 2026-08-08 */
+/* Version: v1.21.0 (Rev #7) - 2026-08-08 */
 
 /**
  * echeancier.php - Version MBS_DARK
@@ -54,7 +54,7 @@ if ($nombreRestant === 0) {
 ?>
 
 <div class="container mb-4 nav-dashboard-container">
-    <div class="glass-card-nav mt-4 mb-4">
+    <div class="glass-card-nav mt-4 mb-0">
 
         <div class="d-flex flex-wrap align-items-center mt-3">
         </div>

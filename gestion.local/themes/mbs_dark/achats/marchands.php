@@ -262,7 +262,7 @@ $resteGlobal = $totalDepenseGlobal - $totalPayeGlobal;
             } else {
                 $statusLabel = '<span class="emoji fs-4">📅</span> EN COURS';
                 $accentColor = '#fbbf24';
-                $headerBg = 'rgba(251, 190, 36, 0.69)';
+                $headerBg = 'rgba(251, 190, 36, 0.69)';  // Augmenté à 30% pour le jaune (moins visible sinon)
             }
         ?>
             <div class="col-sm-6 col-lg-4 col-xl-3">

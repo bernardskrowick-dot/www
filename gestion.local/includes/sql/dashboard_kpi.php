@@ -8,9 +8,9 @@
  */
 
 /**
- * Calcule l'intégralité des KPIs et des données de la période pour le Dashboard (Étendu sur 2 périodes)
+ * Calcule l'intégralité des KPIs et des données de la période pour le Dashboard
  */
-function computeDashboardData(PDO $pdo, int $userId, string $mois, string $dateJour, array $achats, array $versements, array $achatsSuivants = [], array $versementsSuivants = [])
+function computeDashboardData(PDO $pdo, int $userId, string $mois, string $dateJour, array $achats, array $versements): array
 {
 
   // =======================================================
@@ -42,7 +42,7 @@ function computeDashboardData(PDO $pdo, int $userId, string $mois, string $dateJ
   }
 
   // =======================================================
-  // 5. TRAITEMENT & AGRÉGATION DES OPÉRATIONS DE LA PÉRIODE COURANTE
+  // 5. TRAITEMENT & AGRÉGATION DES OPÉRATIONS DE LA PÉRIODE
   // =======================================================
   $operations = array_merge($achats, $versements);
 
@@ -66,8 +66,10 @@ function computeDashboardData(PDO $pdo, int $userId, string $mois, string $dateJ
   $prochainMontantGlobal = 0;
 
   foreach ($operations as &$op) {
+    // Sécurisation de la catégorie
     $op['categorie_id'] = isset($op['categorie_id']) ? (int) $op['categorie_id'] : null;
 
+    // Sécurisation du montant (évite le warning undefined array key)
     $montant = (float) ($op['montant'] ?? 0);
     $typeOperation = $op['type_operation'] ?? '';
     $statutOp = $op['statut'] ?? '';
@@ -89,12 +91,14 @@ function computeDashboardData(PDO $pdo, int $userId, string $mois, string $dateJ
         $totalAchatsPayes += $montant;
       }
 
+      // Calculs spécifiques pour les achats
       $totalPayeFiltre += (float) ($op['total_paye'] ?? 0);
       $montantTotalFiltre += (float) ($op['total_echeances'] ?? 0);
       $totalRestantFiltre += (float) (($op['total_echeances'] ?? 0) - ($op['total_paye'] ?? 0));
       $totalEcheancesAffichees += (int) ($op['nb_total_echeances'] ?? 0);
       $totalEcheancesRestantesFiltre += (int) ($op['nb_restantes'] ?? 0);
 
+      // Prochaine échéance globale
       if (!empty($op['prochaine_echeance'])) {
         if ($prochaineEcheanceGlobale === null || $op['prochaine_echeance'] < $prochaineEcheanceGlobale) {
           $prochaineEcheanceGlobale = $op['prochaine_echeance'];
@@ -125,7 +129,6 @@ function computeDashboardData(PDO $pdo, int $userId, string $mois, string $dateJ
   $revenusAttendusMois = 0.0;
   $fluxFuturs = [];
 
-  // Traitement des flux de la période courante
   foreach ($operations as $op) {
     $montant = (float) ($op['montant'] ?? 0);
     $dateOp = $op['date_operation'] ?? $dateJour;
@@ -142,8 +145,7 @@ function computeDashboardData(PDO $pdo, int $userId, string $mois, string $dateJ
         $fluxFuturs[] = [
           'date' => $dateOp,
           'montant' => $montant,
-          'type' => 'revenu',
-          'periode' => 'courante'
+          'type' => 'revenu'
         ];
       }
     } else {
@@ -154,34 +156,9 @@ function computeDashboardData(PDO $pdo, int $userId, string $mois, string $dateJ
         $fluxFuturs[] = [
           'date' => $dateOp,
           'montant' => $montant,
-          'type' => 'depense',
-          'periode' => 'courante'
+          'type' => 'depense'
         ];
       }
-    }
-  }
-
-  // Intégration des flux de la PÉRIODE SUIVANTE pour étendre le Point Bas sur deux périodes
-  $operationsSuivantes = array_merge($achatsSuivants, $versementsSuivants);
-  foreach ($operationsSuivantes as $op) {
-    $montant = (float) ($op['montant'] ?? 0);
-    $dateOp = $op['date_operation'] ?? $dateJour;
-    $typeOperation = $op['type_operation'] ?? '';
-
-    if ($typeOperation === 'ressource') {
-      $fluxFuturs[] = [
-        'date' => $dateOp,
-        'montant' => $montant,
-        'type' => 'revenu',
-        'periode' => 'suivante'
-      ];
-    } else {
-      $fluxFuturs[] = [
-        'date' => $dateOp,
-        'montant' => $montant,
-        'type' => 'depense',
-        'periode' => 'suivante'
-      ];
     }
   }
 
@@ -220,17 +197,9 @@ function computeDashboardData(PDO $pdo, int $userId, string $mois, string $dateJ
     return strcmp($a['date'], $b['date']);
   });
 
-  // Calcul du point bas global étendu sur les deux périodes
   $soldeGlissant = $soldeReel;
   $pointBasTresorerie = $soldeReel;
   $datePointBas = $dateJour;
-  $periodePointBas = 'courante';
-
-  // Variables spécifiques pour dissocier ou suivre la période suivante si besoin
-  $pointBasPeriodeSuivante = null;
-  $datePointBasSuivante = null;
-  $soldeGlissantFinPeriodeCourante = $soldeReel;
-  $captureFinCourante = false;
 
   foreach ($fluxFuturs as $flux) {
     if ($flux['type'] === 'revenu') {
@@ -239,15 +208,9 @@ function computeDashboardData(PDO $pdo, int $userId, string $mois, string $dateJ
       $soldeGlissant -= $flux['montant'];
     }
 
-    if ($flux['montant'] && !$captureFinCourante && $flux['periode'] === 'suivante') {
-      $soldeGlissantFinPeriodeCourante = $soldeGlissant - ($flux['type'] === 'revenu' ? $flux['montant'] : -$flux['montant']);
-      $captureFinCourante = true;
-    }
-
     if ($soldeGlissant < $pointBasTresorerie) {
       $pointBasTresorerie = $soldeGlissant;
       $datePointBas = $flux['date'];
-      $periodePointBas = $flux['periode'];
     }
   }
 
@@ -268,16 +231,18 @@ function computeDashboardData(PDO $pdo, int $userId, string $mois, string $dateJ
   $jourCourantNum     = (int) $dateAujourdhuiClean->format('d');
   $jourDebutStr       = str_pad($jourDebutPeriode, 2, '0', STR_PAD_LEFT);
 
+  // Calcul du prochain début de période bancaire
   if ($jourCourantNum >= $jourDebutPeriode) {
     $prochainDebutPeriode = new DateTime(date('Y-m-' . $jourDebutStr, strtotime('+1 month', strtotime($dateJour))));
   } else {
     $prochainDebutPeriode = new DateTime(date('Y-m-' . $jourDebutStr, strtotime($dateJour)));
   }
 
+  // Le KPI affiche la fin de la période actuelle (veille du prochain début)
   $dateProchainReleve = clone $prochainDebutPeriode;
   $dateProchainReleve->modify('-1 day');
 
-  $intervalleReleve     = $dateAujourdhuiClean->diff($dateProchainReleve);
+  $intervalleReleve    = $dateAujourdhuiClean->diff($dateProchainReleve);
   $joursRestantsReleve = (int) $intervalleReleve->days;
   if ($joursRestantsReleve < 0) {
     $joursRestantsReleve = 0;
@@ -379,7 +344,6 @@ function computeDashboardData(PDO $pdo, int $userId, string $mois, string $dateJ
     'badgeCouverture',
     'pointBasTresorerie',
     'datePointBas',
-    'periodePointBas',
     'soldeProjeteFinMois',
     'statutPointBas',
     'badgePointBas',

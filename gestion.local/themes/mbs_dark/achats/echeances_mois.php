@@ -1,5 +1,5 @@
 <?php
-/* Version: v1.21.0 (Rev #18) - 2026-08-08 */
+/* Version: v1.21.0 (Rev #26) - 2026-08-08 */
 
 /** echeance_mois.php - Vue mensuelle détaillée */
 

@@ -26,7 +26,6 @@ if (!defined('BASE_URL')) define('BASE_URL', '/'); // À adapter si sous-dossier
 if (!defined('URL_CSS')) define('URL_CSS', BASE_URL . 'css/');
 if (!defined('URL_JS')) define('URL_JS', BASE_URL . 'js/');
 if (!defined('URL_ADMIN')) define('URL_ADMIN', BASE_URL . 'admin/');
-if (!defined('URL_INCLUDES')) define('URL_INCLUDES', BASE_URL . 'includes/');
 if (!defined('URL_ACHATS')) define('URL_ACHATS', BASE_URL . 'achats/');
 if (!defined('URL_RESSOURCES')) define('URL_RESSOURCES', BASE_URL . 'ressources/');
 if (!defined('URL_THEMES')) define('URL_THEMES', BASE_URL . 'themes/');

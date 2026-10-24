@@ -1,5 +1,5 @@
 <?php
-/* Version: v1.19.2 (Rev #26) - 2026-08-16 */
+/* Version: v1.16.2 (Rev #24) - 2026-08-05 */
 
 /**
  * payer_versement.php - Marque un versement comme perçu
@@ -60,14 +60,11 @@ if (!$versement) {
 // Action : marquer comme perçu
 // -----------------------------
 if ($versement['statut'] !== 'percu') {
-    // MODIFICATION : Ajout de is_synced = 0 et updated_at = NOW() pour garantir la synchronisation bidirectionnelle
     $stmt = $pdo->prepare("
         UPDATE versements 
         SET statut = 'percu',
             montant_reel = montant_prevu,
-            date_perception = :aujourdhui,
-            is_synced = 0,
-            updated_at = NOW()
+            date_perception = :aujourdhui
         WHERE id = :id
     ");
     $stmt->execute([
@@ -82,3 +79,4 @@ if ($versement['statut'] !== 'percu') {
 // -----------------------------
 header('Location: router.php?p=historique_ressources.php');
 exit;
+?>
